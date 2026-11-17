@@ -37,7 +37,7 @@ Sebelum masuk ke kode, mari kita pahami apa yang dibuat oleh aplikasi ini dengan
   * **`POST`**: Menambahkan data baru (seperti memesan makanan baru).
   * **`PUT`**: Memperbarui/mengubah data yang *sudah ada* (seperti mengganti isi pesanan yang salah).
   * **`DELETE`**: Menghapus data (seperti membatalkan pesanan).
-* **Layered Architecture**: Memisah-misah kode ke beberapa folder (Router, Controller, Repository, Entity, Database) agar jika ada perubahan atau kerusakan, kita tahu persis folder mana yang harus memperbaiki tanpa mengganggu bagian lain.
+* **Layered Architecture**: Memisah-misah kode ke beberapa folder (Router, Controller, Repository, Entity, Database) agar jika ada perubahan atau kerusakan, kita tahu persis folder mana yang harus diperbaiki tanpa mengganggu bagian lain.
 
 ---
 
@@ -153,7 +153,7 @@ testbab6/
 
 ---
 
-## 📘 5. Penjelasan Rinci Kode Baris demi Baris & Sintaks
+## 📘 5. Penjelasan Rinci Kode Berdasarkan Urutan Alur (`Entity` ➔ `Migration` ➔ `Database` ➔ `Repository` ➔ `Controller` ➔ `Router` ➔ `Main`)
 
 ---
 
@@ -324,17 +324,111 @@ func UpdateCard(c *gin.Context) {
 **Tugas File:** Mengatur daftar alamat URL (endpoint), menentukan HTTP Method (`GET`, `POST`, `PUT`, `DELETE`), dan mengatur akses izin domain eksternal (*CORS*).
 
 ```go
-// ...
+package routers
+
+import (
+	"bab6/controllers"
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+)
+
+func StartServer() *gin.Engine {
+	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	router.GET("/cards", controllers.GetCards)
 	router.POST("/card/input/:id", controllers.InsertCard)
-	router.PUT("/card/update/:id", controllers.UpdateCard) // Tambahkan endpoint PUT di sini
+	router.PUT("/card/update/:id", controllers.UpdateCard)
 	router.DELETE("/card/delete/:id", controllers.DeleteCard)
-// ...
+
+	return router
+}
 ```
 
 ---
 
-## 🚀 6. Cara Menjalankan Proyek Utama (`bab6`)
+### 5.7. `main.go` (Pintu Masuk Utama Aplikasi)
+
+**Tugas File:** File pertama yang dijalankan oleh komputer. Menyiapkan parameter database, membuka koneksi PostgreSQL, memanggil fungsi migrasi, dan menyalakan web server HTTP.
+
+```go
+package main
+
+import (
+	database "bab6/databases"
+	"bab6/routers"
+	"database/sql"
+	"fmt"
+	"log"
+
+	_ "github.com/lib/pq"
+)
+
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "nickytirta54" // SESUAIKAN DENGAN PASSWORD POSTGRE YANG TELAH DIDAFTARKAN
+	dbName   = "mcsbab6"      // SESUAIKAN DENGAN NAMA DATABASE YANG DIBUAT
+)
+
+var (
+	DB  *sql.DB
+	err error
+)
+
+func main() {
+	var PORT = ":50000" // ISI DENGAN PORT BEBAS (DAPAT DICARI DI GOOGLE DENGAN KEYWORD "UNUSED PORT RANGE")
+
+	psqlInfo := fmt.Sprintf(
+		`host=%s port=%d user=%s password=%s dbname=%s sslmode=disable`,
+		host, port, user, password, dbName,
+	)
+
+	DB, err = sql.Open("postgres", psqlInfo)
+
+	if err != nil {
+		log.Fatal("Error Open DB: ", err)
+	}
+
+	database.DBMigration(DB)
+
+	defer DB.Close()
+
+	routers.StartServer().Run(PORT)
+	fmt.Printf("Success Connected")
+}
+```
+
+#### Penjelasan Sintaks, Variabel, & Fungsi:
+1. **`package main` & `func main()`**: Syarat mutlak program Go yang dapat dieksekusi (*executable*). Titik awal eksekusi program dimulai dari sini.
+2. **`_ "github.com/lib/pq"`**: Disebut **Side-Effect Import** (diawali tanda garis bawah `_`). Kita tidak memanggil fungsi package `pq` secara langsung, tetapi kita membutuhkan fungsi internal `init()` milik package `pq` agar driver database bernama `"postgres"` terdaftar secara resmi di package standar `database/sql`.
+3. **Blok `const (...)`**: Mendefinisikan nilai variabel tetap (konstanta) untuk konfigurasi PostgreSQL:
+   * `host = "localhost"`: Alamat komputer tempat PostgreSQL berada.
+   * `port = 5432`: Nomor port standar PostgreSQL.
+   * `user = "postgres"`: Username login PostgreSQL.
+   * `password = "nickytirta54"`: Password user PostgreSQL.
+   * `dbName = "mcsbab6"`: Nama database yang digunakan di PostgreSQL.
+4. **Blok `var ( DB *sql.DB; err error )`**: Variabel global penampung koneksi SQL (`DB`) dan objek error (`err`).
+5. **`var PORT = ":50000"`**: Variabel penyimpan nomor port server web HTTP tempat aplikasi akan berjalan (akses: `http://localhost:50000`).
+6. **`psqlInfo := fmt.Sprintf(...)`**: Rangkaian teks *Connection String* (DSN) format PostgreSQL.
+7. **`DB, err = sql.Open("postgres", psqlInfo)`**: Inisialisasi awal koneksi database PostgreSQL.
+8. **`database.DBMigration(DB)`**: Memanggil fungsi migrasi dari package `database`. Memastikan tabel `card` otomatis dibuat di PostgreSQL.
+9. **`defer DB.Close()`**: Menjamin koneksi database ditutup dengan aman saat program berhenti.
+10. **`routers.StartServer().Run(PORT)`**: Memanggil fungsi `StartServer()` dari `routers` dan menyalakan server di port `:50000`.
+
+---
+
+## 🚀 8. Cara Menjalankan Proyek Utama (`bab6`)
 
 1. **Buat Database PostgreSQL**
    ```sql
@@ -352,7 +446,7 @@ func UpdateCard(c *gin.Context) {
 
 ---
 
-## 🧪 7. Pengujian Endpoint API (Termasuk PUT)
+## 🧪 9. Pengujian Endpoint API (Termasuk PUT)
 
 Base URL Server: **`http://localhost:50000`**
 

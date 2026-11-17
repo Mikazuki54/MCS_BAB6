@@ -1,5 +1,5 @@
-# Panduan & Dokumentasi Lengkap REST API Card Bridge (`bab6`)
-*Panduan Ramah Pemula & Orang Awam: Penjelasan Spesifik per Potongan Kode, Baris demi Baris, Variabel, Sintaks, dan Fungsi.*
+# Panduan & Dokumentasi Kode Lengkap REST API Card Bridge (`bab6`)
+*Panduan Ramah Pemula & Orang Awam: Penjelasan Kode Sangat Mendalam, Baris demi Baris, Lengkap Tanpa Ada yang Terlewat.*
 
 ---
 
@@ -85,11 +85,11 @@ go mod init proyek-baru
 
 ---
 
-## 📘 4. Penjelasan Rinci Kode Berdasarkan Urutan Alur (`Entity` ➔ `Migration` ➔ `Database` ➔ `Repository` ➔ `Controller` ➔ `Router` ➔ `Main`)
+## 📘 5. Penjelasan Rinci Kode Berdasarkan Urutan Alur (`Entity` ➔ `Migration` ➔ `Database` ➔ `Repository` ➔ `Controller` ➔ `Router` ➔ `Main`)
 
 ---
 
-### 4.1. `entities/card_bridge_entity.go` (Wadah Data Kartu)
+### 5.1. `entities/card_bridge_entity.go` (Wadah Data Kartu)
 
 **Tugas File:** Mendefinisikan bentuk data kartu yang dipakai dalam program Go dan format teks JSON saat dikirim ke pemanggil API.
 
@@ -101,38 +101,51 @@ type Card struct {
 }
 ```
 
-#### Penjelasan Spesifik Baris demi Baris:
-* ◦ `package entities` : Kelompok file ini.
-* ◦ `type Card struct` : Membuat cetakan data bernama `Card`.
-* ◦ `ID string` : Kotak penyimpanan data bernama `ID` dengan jenis teks (`string`).
-* ◦ `json: "id"` : *Struct tag* untuk mengatur nama field menjadi `id` saat dikirim ke format JSON.
+#### Penjelasan Detail Baris demi Baris:
+* ◦ `package entities` : Mendeklarasikan bahwa file ini merupakan bagian dari package atau kelompok folder bernama `entities`. Di Go, semua file dalam satu folder wajib memiliki nama package yang sama.
+* ◦ `type Card struct` : Perintah untuk membuat cetakan data baru (*custom data type*) bernama `Card`. Huruf `C` besar di awal kata menandakan bahwa struct ini bersifat *exported* (publik) sehingga bisa dibaca dan diakses oleh file di folder lain.
+* ◦ `ID string` : Properti atau kolom di dalam cetakan `Card` bernama `ID` dengan tipe data teks (`string`). Digunakan untuk menampung nilai unik kartu.
+* ◦ `json: "id"` : *Struct tag* atau label penanda untuk converter JSON bawaan Go. Saat objek `Card` dikonversi menjadi response JSON, field `ID` akan otomatis dicetak menggunakan huruf kecil `"id"`.
 
 ---
 
-### 4.2. `databases/sql_migrations/1_initiate.sql` (Skrip Pembuat Tabel)
+### 5.2. `databases/sql_migrations/1_initiate.sql` (Skrip Pembuat Tabel)
 
-**Tugas File:** Membuat tabel `card` di PostgreSQL secara otomatis.
+**Tugas File:** Membuat tabel `card` di PostgreSQL secara otomatis saat aplikasi pertama kali berjalan.
 
 ```sql
 -- +migrate Up
 -- +migrate StatementBegin
-CREATE TABLE card (id varchar(20));
+
+CREATE TABLE card (
+    id varchar(20)
+);
+
 -- +migrate StatementEnd
 ```
 
-#### Penjelasan Spesifik:
-* ◦ `-- +migrate Up` : Perintah untuk library migrasi agar menjalankan kode ini saat membangun tabel.
-* ◦ `CREATE TABLE card` : Perintah SQL untuk membuat tabel baru di database.
+#### Penjelasan Detail Baris demi Baris:
+* ◦ `-- +migrate Up` : Komentar khusus (*direktif*) yang dibaca oleh library `sql-migrate`. Perintah ini memberi tahu sistem bahwa kode di bawahnya harus dieksekusi untuk *membuat atau memperbarui* struktur tabel di database.
+* ◦ `-- +migrate StatementBegin` & `-- +migrate StatementEnd` : Penanda batas awal dan akhir dari satu blok transaksi perintah SQL utuh agar dieksekusi secara bersamaan oleh migrator.
+* ◦ `CREATE TABLE card (` : Perintah SQL dasar untuk membuat tabel baru di dalam database PostgreSQL dengan nama tabel `card`.
+* ◦ `id varchar(20)` : Perintah SQL untuk membuat satu kolom di dalam tabel `card` bernama `id` dengan tipe data teks dinamis (`varchar`) yang memiliki panjang maksimal 20 karakter.
 
 ---
 
-### 4.3. `databases/database.go` (Pengelola Koneksi & Migrasi Otomatis)
+### 5.3. `databases/database.go` (Pengelola Koneksi DB & Migrasi Otomatis)
 
-**Tugas File:** Mengurus koneksi ke PostgreSQL dan menjalankan migrasi file `.sql`.
+**Tugas File:** Membaca file `.sql`, mengeksekusi pembuatan tabel ke PostgreSQL secara otomatis, dan menyimpan koneksi database agar siap dipakai oleh fungsi lain.
 
 ```go
 package database
-// ... (imports)
+
+import (
+	"database/sql"
+	"embed"
+	"fmt"
+
+	migrate "github.com/rubenv/sql-migrate"
+)
 
 //go:embed sql_migrations/*.sql
 var dbMigration embed.FS
@@ -153,34 +166,54 @@ func DBMigration(dbParam *sql.DB) {
 }
 ```
 
-#### Penjelasan Spesifik:
-* ◦ `dbParam *sql.DB` : **Sangat Penting**. Ini adalah *bahan masukan* berupa kunci koneksi database yang dikirim dari `main.go`. Tanpa parameter ini, fungsi migrasi tidak akan tahu ke mana harus mengirim perintah SQL.
-* ◦ `n` : Variabel yang menampung *angka integer* jumlah file migrasi yang sukses dijalankan.
-* ◦ `errs` : Variabel yang menampung *pesan error* jika terjadi kesalahan (misalnya koneksi database salah).
-* ◦ `migrate.Exec(...)` : Fungsi dari library migrasi untuk mengeksekusi perintah SQL.
-* ◦ `panic(errs)` : Jika `errs` berisi pesan error, program akan langsung berhenti paksa (`panic`) agar kita sadar ada kesalahan konfigurasi.
-* ◦ `DbConnection = dbParam` : Menyimpan kunci koneksi database ke variabel global agar bisa dipakai oleh file lain.
+#### Penjelasan Detail Baris demi Baris:
+* ◦ `package database` : Menandakan file ini milik kelompok folder `database`.
+* ◦ `import (...)` : Mengambil pustaka standar Go (`database/sql`, `embed`, `fmt`) dan pustaka pihak ketiga `sql-migrate` (yang diberi alias `migrate`).
+* ◦ `//go:embed sql_migrations/*.sql` : Komentar compiler khusus di Go (Go Embed). Perintah ini menyuruh Go untuk menyertakan file-file `.sql` ke dalam hasil akhir file program (*binary*), sehingga kita tidak perlu membawa folder `sql_migrations` terpisah saat aplikasi dijalankan.
+* ◦ `var dbMigration embed.FS` : Variabel bertipe sistem file virtual (*embedded file system*) yang menampung seluruh file migrasi `.sql`.
+* ◦ `var DbConnection *sql.DB` : Variabel global bertipe pointer database (`*sql.DB`). Menggunakan huruf awal kapital (`D`) agar bisa diakses dari luar package (misalnya oleh `controllers` atau `repositories`).
+* ◦ `func DBMigration(dbParam *sql.DB)` : Fungsi utama untuk menjalankan migrasi database.
+  * **Penjelasan `dbParam`**: Parameter/bahan masukan berupa objek koneksi database aktif (`*sql.DB`) yang dikirim langsung dari file `main.go`. Variabel ini berfungsi sebagai jembatan agar fungsi migrasi tahu ke database PostgreSQL mana perintah SQL harus dijalankan.
+* ◦ `migrations := &migrate.EmbedFileSystemMigrationSource{...}` : Menyiapkan konfigurasi sumber file migrasi dengan menunjuk ke sistem file virtual `dbMigration` di dalam folder utama `"sql_migrations"`.
+* ◦ `n, errs := migrate.Exec(dbParam, "postgres", migrations, migrate.Up)` : Perintah utama untuk mengeksekusi file migrasi ke database.
+  * **`n`**: Menampung nilai angka (`integer`) yang menunjukkan berapa banyak file migrasi baru yang berhasil dijalankan.
+  * **`errs`**: Menampung nilai `error` jika proses migrasi menemui kegagalan.
+  * **`dbParam`**: Menyertakan koneksi database yang diterima dari parameter fungsi di atas.
+  * **`"postgres"`**: Memberitahu library migrasi bahwa jenis database yang kita tuju adalah PostgreSQL.
+  * **`migrate.Up`**: Menandakan arah migrasi maju (membuat tabel baru).
+* ◦ `if errs != nil { panic(errs) }` : Pengaman jika terjadi error saat migrasi (misalnya database belum dibuat atau password salah), program akan dihentikan secara paksa (`panic`) agar kita bisa segera memperbaiki kesalahannya.
+* ◦ `DbConnection = dbParam` : Menyimpan koneksi database yang sudah teruji dan berhasil dimigrasi ke variabel global `DbConnection`.
+* ◦ `fmt.Println(...)` : Mencetak pesan sukses migrasi ke layar terminal komputer.
 
 ---
 
-### 4.4. `repositories/card_bridge_repo.go` (Akses Data)
+### 5.4. `repositories/card_bridge_repo.go` (Akses Data / Query SQL)
 
-**Tugas File:** Tempat koki menjalankan perintah SQL ke database PostgreSQL.
+**Tugas File:** Tempat koki menjalankan perintah query SQL langsung (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) ke database PostgreSQL.
 
 ```go
 package repositories
-// ... (imports)
+
+import (
+	"bab6/entities"
+	"database/sql"
+)
 
 func GetCards(db *sql.DB) (result []entities.Card, err error) {
 	sql := "SELECT * FROM card"
-	rows, err := db.Query(sql) // Membaca data
-	if err != nil { return }
-	defer rows.Close() // Menutup koneksi rows secara aman setelah selesai
+	rows, err := db.Query(sql)
 
-	for rows.Next() { // Perulangan membaca baris
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
 		var data entities.Card
-		err = rows.Scan(&data.ID) // Memindahkan data dari database ke variabel Go
-		if err != nil { return }
+		err = rows.Scan(&data.ID)
+		if err != nil {
+			return
+		}
 		result = append(result, data)
 	}
 	return
@@ -188,62 +221,162 @@ func GetCards(db *sql.DB) (result []entities.Card, err error) {
 
 func InsertCard(db *sql.DB, card entities.Card) (err error) {
 	sql := "INSERT INTO card(id) values($1)"
-	_, err = db.Exec(sql, card.ID) // Exec untuk perintah yang tidak mengembalikan data
+	_, err = db.Exec(sql, card.ID)
 	return err
 }
 
-// ... (UpdateCard & DeleteCard serupa dengan InsertCard)
+func UpdateCard(db *sql.DB, card entities.Card) (err error) {
+	sql := "UPDATE card SET id = $1 WHERE id = $2"
+	_, err = db.Exec(sql, card.ID, "id_lama")
+	return err
+}
+
+func DeleteCard(db *sql.DB, card entities.Card) (err error) {
+	sql := "DELETE FROM card WHERE id = $1"
+	_, err = db.Exec(sql, card.ID)
+	return err
+}
 ```
 
-#### Penjelasan Spesifik:
-* ◦ `db *sql.DB` : Parameter kunci akses database yang dikirim dari *Controller*.
-* ◦ `db.Query(sql)` : Khusus untuk perintah `SELECT` (pembacaan data).
-* ◦ `db.Exec(sql, ...)` : Khusus untuk perintah `INSERT`, `UPDATE`, `DELETE` (perubahan data).
-* ◦ `rows.Scan(&data.ID)` : Perintah krusial untuk "menarik" isi kolom dari database dan memasukkannya ke dalam alamat memori variabel `data.ID`.
+#### Penjelasan Detail Baris demi Baris:
+* ◦ `package repositories` : Menandakan file ini berada di kelompok khusus repositori data.
+* ◦ `db *sql.DB` (pada setiap fungsi repo) : Parameter kunci koneksi database yang dikirim dari controller agar repository bisa berbicara dengan PostgreSQL.
+* ◦ **Fungsi `GetCards(db *sql.DB)`**: Mengambil seluruh data kartu.
+  * `db.Query(sql)` : Menjalankan perintah `SELECT` untuk mengambil banyak baris data dari database. Hasilnya disimpan di variabel `rows`.
+  * `defer rows.Close()` : Menjadwalkan penutupan pointer `rows` di akhir fungsi agar tidak terjadi kebocoran memori RAM (*connection leak*).
+  * `for rows.Next()` : Perulangan untuk membaca hasil query baris demi baris.
+  * `rows.Scan(&data.ID)` : Perintah untuk menyalin isi kolom database baris saat ini ke dalam variabel memori `&data.ID`.
+  * `result = append(result, data)` : Menambahkan data kartu yang baru dibaca ke dalam daftar slice `result`.
+* ◦ **Fungsi `InsertCard(db *sql.DB, card entities.Card)`**: Menambahkan kartu baru.
+  * `db.Exec(sql, card.ID)` : Menjalankan query yang tidak mengembalikan baris data (`INSERT`/`UPDATE`/`DELETE`). Simbol `$1` digunakan sebagai parameter aman untuk menghindari serangan *SQL Injection*.
+* ◦ **Fungsi `UpdateCard(db *sql.DB, card entities.Card)`**: Memperbarui data kartu.
+  * Menggunakan perintah SQL `UPDATE card SET id = $1 WHERE id = $2` untuk mengganti nilai ID lama dengan yang baru.
+* ◦ **Fungsi `DeleteCard(db *sql.DB, card entities.Card)`**: Menghapus data kartu berdasarkan ID.
+  * Menggunakan perintah SQL `DELETE FROM card WHERE id = $1`.
 
 ---
 
-### 4.5. `controllers/card_bridge_controllers.go` (Logika Bisnis & HTTP Handler)
+### 5.5. `controllers/card_bridge_controllers.go` (Logika Bisnis & HTTP Handler)
 
-**Tugas File:** Pelayan yang menerima permintaan HTTP, memanggil koki (repo), dan mengantarkan makanan (JSON).
+**Tugas File:** Pelayan yang menerima permintaan HTTP, meminta repository memproses ke database, dan mengantarkan balasan berformat JSON.
 
 ```go
-// ... (imports)
+package controllers
+
+import (
+	database "bab6/databases"
+	"bab6/entities"
+	"bab6/repositories"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func GetCards(c *gin.Context) {
-	card, err := repositories.GetCards(database.DbConnection) // Panggil koki
+	var result gin.H
 
-	if err != nil { // Jika gagal
+	card, err := repositories.GetCards(database.DbConnection)
+
+	if err != nil {
+		result = gin.H{
+			"result": err.Error(),
+		}
+	} else {
+		result = gin.H{
+			"result": card,
+		}
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func InsertCard(c *gin.Context) {
+	var card entities.Card
+	idCard := c.Param("id")
+	card.ID = idCard
+
+	err := repositories.InsertCard(database.DbConnection, card)
+
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"result": card}) // Jika sukses
+	c.JSON(http.StatusOK, card)
 }
 
-// ... (Insert, Update, Delete serupa)
+func UpdateCard(c *gin.Context) {
+	var card entities.Card
+	if err := c.ShouldBindJSON(&card); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := repositories.UpdateCard(database.DbConnection, card)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Diupdate"})
+}
+
+func DeleteCard(c *gin.Context) {
+	var card entities.Card
+	idCard := c.Param("id")
+	card.ID = idCard
+
+	err := repositories.DeleteCard(database.DbConnection, card)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Dihapus", "id": idCard})
+}
 ```
 
-#### Penjelasan Spesifik:
-* ◦ `c *gin.Context` : Objek konteks Gin. Berisi data request pengguna dan alat untuk mengirim balasan.
-* ◦ `c.JSON(http.StatusOK, ...)` : Perintah mengirim balik data dalam format JSON dengan status sukses (`200 OK`).
-* ◦ `http.StatusInternalServerError` : Status code `500`, menandakan ada error di dalam server (biasanya error database).
-* ◦ `database.DbConnection` : Mengambil kunci koneksi database global untuk dikirim ke Repository.
+#### Penjelasan Detail Baris demi Baris:
+* ◦ `package controllers` : Menandakan file ini bertugas sebagai pengatur alur kontrol request.
+* ◦ `c *gin.Context` : Objek konteks Gin yang membawa seluruh informasi HTTP Request dari klien dan menyediakan alat untuk mengirim response balik.
+* ◦ **Fungsi `GetCards(c *gin.Context)`**: Menangani request `GET /cards`.
+  * Memanggil `repositories.GetCards(database.DbConnection)` untuk mengambil data dari database.
+  * Menggunakan `c.JSON(http.StatusOK, result)` untuk mengirimkan response berupa JSON dengan status HTTP `200 OK`.
+* ◦ **Fungsi `InsertCard(c *gin.Context)`**: Menangani request `POST`.
+  * `c.Param("id")` : Mengambil nilai parameter `:id` dari URL.
+  * `c.JSON(http.StatusInternalServerError, ...)` : Mengirim status `500` jika penyimpanan database gagal.
+* ◦ **Fungsi `UpdateCard(c *gin.Context)`**: Menangani request `PUT`.
+  * `c.ShouldBindJSON(&card)` : Membaca data JSON yang dikirim pengguna di body request dan menyalinnya ke struct `card`.
+  * `http.StatusBadRequest` : Mengembalikan status `400` jika format JSON yang dikirim pengguna tidak valid.
+* ◦ **Fungsi `DeleteCard(c *gin.Context)`**: Menangani request `DELETE`.
+  * Mengambil ID dari URL, menghapusnya via repository, lalu mengirim pesan sukses `"Data Berhasil Dihapus"`.
 
 ---
 
-### 4.6. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL)
+### 5.6. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL & CORS)
 
-**Tugas File:** Buku daftar alamat URL dan middleware CORS.
+**Tugas File:** Mengatur daftar alamat URL (endpoint), menentukan HTTP Method, dan mengatur izin CORS.
 
 ```go
-// ... (imports)
+package routers
+
+import (
+	"bab6/controllers"
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+)
 
 func StartServer() *gin.Engine {
-	router := gin.Default() // Membuat mesin router Gin
+	router := gin.Default()
 
-	// Middleware CORS: Satpam yang mengecek apakah domain luar boleh mengakses API
-	router.Use(cors.New(cors.Config{...})) 
-	
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	router.GET("/cards", controllers.GetCards)
 	router.POST("/card/input/:id", controllers.InsertCard)
 	router.PUT("/card/update/:id", controllers.UpdateCard)
@@ -253,37 +386,129 @@ func StartServer() *gin.Engine {
 }
 ```
 
-#### Penjelasan Spesifik:
-* ◦ `gin.Default()` : Mengaktifkan mesin web server Gin dengan fitur *Logger* (pencatat aktivitas di terminal) dan *Recovery* (penahan *crash*).
-* ◦ `cors.Config` : Pengaturan yang mengizinkan domain mana saja yang boleh mengakses API ini (`AllowOrigins: "*"`) dan metode HTTP apa saja yang diizinkan (`AllowMethods`).
+#### Penjelasan Detail Baris demi Baris:
+* ◦ `package routers` : Kelompok file rute alamat URL.
+* ◦ `router := gin.Default()` : Membuat instance router Gin baru yang sudah dilengkapi dengan logger terminal dan sistem pemulihan error (*recovery*).
+* ◦ `router.Use(cors.New(...))` : Konfigurasi CORS (Cross-Origin Resource Sharing).
+  * `AllowOrigins: []string{"*"}` : Mengizinkan akses dari domain/frontend mana saja.
+  * `AllowMethods` : Menentukan metode HTTP yang diizinkan (`GET`, `POST`, `PUT`, `DELETE`, dll.).
+* ◦ `router.GET(...)`, `router.POST(...)`, `router.PUT(...)`, `router.DELETE(...)` : Menghubungkan alamat URL endpoint dengan fungsi controller yang bersangkutan.
+* ◦ `return router` : Mengembalikan mesin router yang siap dijalankan ke file `main.go`.
 
 ---
 
-### 4.7. `main.go` (Pintu Masuk Aplikasi)
+### 5.7. `main.go` (Pintu Masuk Utama Aplikasi)
 
-**Tugas File:** Program utama untuk menyalakan koneksi database, migrasi, dan server web.
+**Tugas File:** Titik awal eksekusi program. Menyiapkan parameter database, membuka koneksi PostgreSQL, memanggil migrasi, dan menyalakan server web.
 
 ```go
-// ... (imports)
+package main
+
+import (
+	database "bab6/databases"
+	"bab6/routers"
+	"database/sql"
+	"fmt"
+	"log"
+
+	_ "github.com/lib/pq"
+)
+
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "nickytirta54"
+	dbName   = "mcsbab6"
+)
+
+var (
+	DB  *sql.DB
+	err error
+)
 
 func main() {
-	var PORT = ":50000" // Port server
+	var PORT = ":50000"
 
-	// Rangkaian string koneksi
-	psqlInfo := fmt.Sprintf(...)
+	psqlInfo := fmt.Sprintf(
+		`host=%s port=%d user=%s password=%s dbname=%s sslmode=disable`,
+		host, port, user, password, dbName,
+	)
 
-	DB, err = sql.Open("postgres", psqlInfo) // Buka pintu database
-	if err != nil { log.Fatal(...) }
+	DB, err = sql.Open("postgres", psqlInfo)
 
-	database.DBMigration(DB) // Panggil fungsi migrasi otomatis
-	defer DB.Close() // Pastikan database ditutup saat aplikasi mati
+	if err != nil {
+		log.Fatal("Error Open DB: ", err)
+	}
 
-	routers.StartServer().Run(PORT) // Jalankan web server
+	database.DBMigration(DB)
+
+	defer DB.Close()
+
+	routers.StartServer().Run(PORT)
+	fmt.Printf("Success Connected")
 }
 ```
 
-#### Penjelasan Spesifik:
-* ◦ `sql.Open("postgres", psqlInfo)` : Perintah untuk membuka gerbang koneksi ke database.
-* ◦ `database.DBMigration(DB)` : Memanggil fungsi migrasi di folder `databases` dengan mengirimkan kunci koneksi `DB`.
-* ◦ `defer DB.Close()` : Perintah jaminan agar saat aplikasi ditutup (`Ctrl+C`), koneksi database diputus dengan bersih.
-* ◦ `routers.StartServer().Run(PORT)` : Perintah pamungkas untuk menyalakan web server HTTP di port yang ditentukan. Fungsi `Run` bersifat *blocking*, artinya program tidak akan lanjut ke baris berikutnya sampai server dihentikan.
+#### Penjelasan Detail Baris demi Baris:
+* ◦ `package main` : Package utama aplikasi Go yang dapat dijalankan secara mandiri.
+* ◦ `_ "github.com/lib/pq"` : *Side-effect import* dengan garis bawah `_`. Berfungsi mendaftarkan driver database PostgreSQL ke dalam package standar `database/sql` Go agar komputer mengenali perintah database.
+* ◦ `const (...)` : Kumpulan data konstanta (tetap) untuk alamat host, port, username, password, dan nama database PostgreSQL.
+* ◦ `sql.Open("postgres", psqlInfo)` : Perintah untuk membuka gerbang koneksi awal ke database PostgreSQL menggunakan string konfigurasi `psqlInfo`.
+* ◦ `database.DBMigration(DB)` : Memanggil fungsi migrasi otomatis yang ada di folder `databases` dengan mengirimkan parameter koneksi `DB`.
+* ◦ `defer DB.Close()` : Perintah penjadwalan agar koneksi database ditutup secara otomatis tepat sebelum program dimatikan.
+* ◦ `routers.StartServer().Run(PORT)` : Perintah utama untuk menyalakan server HTTP Gin di port `:50000`. Perintah ini bersifat *blocking* (menahan program agar terus berjalan mendengarkan request).
+
+---
+
+## 🚀 8. Cara Menjalankan Proyek Utama (`bab6`)
+
+1. **Buat Database PostgreSQL**
+   ```sql
+   CREATE DATABASE mcsbab6;
+   ```
+2. **Sesuaikan Konfigurasi** di `main.go` (`password` dan `dbName`).
+3. **Unduh Dependensi**
+   ```bash
+   go mod tidy
+   ```
+4. **Jalankan Aplikasi**
+   ```bash
+   go run main.go
+   ```
+
+---
+
+## 🧪 9. Pengujian Endpoint API (Termasuk PUT)
+
+Base URL Server: **`http://localhost:50000`**
+
+### 1. Tambah Kartu (`POST`)
+* **URL**: `http://localhost:50000/card/input/CARD-001`
+* **cURL**:
+  ```bash
+  curl -X POST http://localhost:50000/card/input/CARD-001
+  ```
+
+### 2. Lihat Semua Kartu (`GET`)
+* **URL**: `http://localhost:50000/cards`
+* **cURL**:
+  ```bash
+  curl -X GET http://localhost:50000/cards
+  ```
+
+### 3. Perbarui Kartu (`PUT`)
+* **URL**: `http://localhost:50000/card/update/CARD-001`
+* **cURL**:
+  ```bash
+  curl -X PUT http://localhost:50000/card/update/CARD-001 \
+  -H "Content-Type: application/json" \
+  -d '{"id": "CARD-BARU"}'
+  ```
+
+### 4. Hapus Kartu (`DELETE`)
+* **URL**: `http://localhost:50000/card/delete/CARD-001`
+* **cURL**:
+  ```bash
+  curl -X DELETE http://localhost:50000/card/delete/CARD-001
+  ```

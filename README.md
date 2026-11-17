@@ -1,5 +1,5 @@
 # Panduan & Dokumentasi Kode Lengkap REST API Card Bridge (`bab6`)
-*Panduan Ramah Pemula & Orang Awam: Penjelasan Kode Sangat Mendalam, Baris demi Baris, Serta Bedah Tuntas Setiap Function (Fungsi) yang Ada di Masing-masing File.*
+*Panduan Ramah Pemula & Orang Awam: Penjelasan Kode Sangat Mendalam, Bedah Simbol/Sintaks (seperti `_`, `*`, `:=`, `&`), Serta Bedah Tuntas Setiap Function di Masing-masing File.*
 
 ---
 
@@ -41,22 +41,18 @@ Sebelum masuk ke kode, mari kita pahami apa yang dibuat oleh aplikasi ini dengan
 
 ---
 
-## 📖 2. Glosarium Istilah Pemula
+## 📖 2. Glosarium Simbol & Istilah Khusus di Golang (Wajib Baca untuk Pemula)
 
-*Baca ini agar lebih mudah memahami istilah teknis di bawah:*
+Sebelum membaca kode di bawah, pahami dulu arti dari simbol-simbol khusus yang sering muncul dalam bahasa Go:
 
-| Istilah | Penjelasan Sederhana untuk Pemula |
-| :--- | :--- |
-| **Golang / Go** | Bahasa pemrograman yang cepat, ringan, dan cocok untuk backend server. |
-| **Gin Gonic** | Alat bantu (framework) untuk membuat web server di Go. |
-| **Function (Fungsi)** | Blok kode mandiri yang diberi nama untuk menjalankan tugas tertentu saat dipanggil. |
-| **Struct** | Fitur Go untuk membuat wadah tipe data sendiri (seperti objek). |
-| **Pointer (`*`)** | Tanda penunjuk alamat memori komputer asli, bukan menduplikat datanya. |
-| **Parameter** | Nilai/bahan masukan yang dikirim ke dalam sebuah fungsi agar bisa diolah. |
-| **JSON** | Format teks pertukaran data di internet (`"key": "value"`). |
-| **CORS** | Sistem keamanan browser agar web lain tidak sembarangan mengambil data API kita. |
-| **`defer`** | Perintah "nanti saja" untuk menjalankan fungsi tepat sebelum fungsi utama selesai. |
-| **`import`** | Perintah untuk memanggil atau "membawa masuk" folder/library luar agar bisa digunakan di file kita. |
+| Simbol / Istilah | Nama Resmi | Penjelasan Sederhana untuk Pemula |
+| :--- | :--- | :--- |
+| **`_`** | **Blank Identifier** | Pengganti variabel penampung kosong. Digunakan untuk **mengabaikan** nilai atau hasil kembalian (*return value*) yang tidak ingin kita pakai di dalam kode. |
+| **`*`** | **Pointer / Dereference** | Menunjuk ke alamat memori asli suatu data. Contoh `*sql.DB` artinya variabel ini memegang kunci alamat memori asli dari koneksi database. |
+| **`&`** | **Address-of Operator** | Mengambil alamat memori dari sebuah variabel. Contoh `&data.ID` artinya kita meminta alamat kotak memori variabel `data.ID` agar bisa diisi langsung oleh database. |
+| **`:=`** | **Short Variable Declaration** | Cara cepat membuat variabel baru sekaligus mengisikan nilainya tanpa perlu menulis kata kunci `var`. |
+| **`[]`** | **Slice** | Kumpulan data atau daftar (list) berurutan yang ukurannya bisa bertambah atau berkurang (mirip *Array* di bahasa lain). |
+| **`defer`** | **Defer Statement** | Perintah tunda yang menyuruh Go mengeksekusi suatu baris kode (misal `rows.Close()`) persis di akhir sebelum fungsi selesai. |
 
 ---
 
@@ -87,7 +83,7 @@ go mod init proyek-baru
 
 ---
 
-## 📘 5. Penjelasan Rinci Kode, Library Import, dan Bedah Setiap Function Berdasarkan Urutan Alur
+## 📘 5. Penjelasan Rinci Kode, Library Import, dan Bedah Setiap Function Secara Menyeluruh
 
 ---
 
@@ -103,13 +99,13 @@ type Card struct {
 }
 ```
 
-#### A. Penjelasan Import & File:
-* **Library yang di-import**: *Tidak ada*, karena file ini murni mendefinisikan struktur data dasar.
+#### Penjelasan Import & Baris demi Baris:
+* **Library yang di-import**: *Tidak ada*.
 * **Penjelasan Kode**:
-  * ◦ `package entities` : Menandai bahwa file ini adalah bagian dari kelompok folder `entities`.
-  * ◦ `type Card struct` : Membuat cetakan objek data baru bernama `Card`. Karena diawali huruf kapital (`C`), struct ini bisa diakses dari luar folder.
-  * ◦ `ID string` : Field/atribut di dalam struct berupa teks (`string`).
-  * ◦ `json: "id"` : *Struct tag* untuk mengubah nama field `ID` menjadi `"id"` huruf kecil saat diubah ke format JSON.
+  * ◦ `package entities` : Menandai bahwa file ini milik kelompok folder `entities`.
+  * ◦ `type Card struct` : Membuat cetakan objek data baru bernama `Card`.
+  * ◦ `ID string` : Properti teks di dalam struct `Card`.
+  * ◦ `json: "id"` : *Struct tag* untuk mengubah nama field menjadi `"id"` huruf kecil pada format JSON.
 
 ---
 
@@ -129,10 +125,10 @@ CREATE TABLE card (
 ```
 
 #### Penjelasan File:
-* **Library yang di-import**: *Tidak ada* (berisi perintah DDL SQL murni).
+* **Library yang di-import**: *Tidak ada*.
 * **Penjelasan Kode**:
-  * ◦ `-- +migrate Up` : Perintah direktif untuk library migrasi database.
-  * ◦ `CREATE TABLE card ( id varchar(20) );` : Perintah SQL untuk membuat tabel baru bernama `card` dengan kolom `id` bertipe teks maksimal 20 karakter.
+  * ◦ `-- +migrate Up` : Perintah direktif migrasi maju.
+  * ◦ `CREATE TABLE card ( id varchar(20) );` : Perintah SQL untuk membuat tabel `card`.
 
 ---
 
@@ -171,26 +167,23 @@ func DBMigration(dbParam *sql.DB) {
 ```
 
 #### A. Penjelasan Library / Folder yang Di-import:
-* `"database/sql"`: Library standar Go untuk berinteraksi dengan database relational.
-* `"embed"`: Fitur bawaan Go untuk menyertakan file fisik (file `.sql`) langsung ke dalam program binary.
-* `"fmt"`: Library standar Go untuk memformat dan mencetak teks ke terminal.
-* `migrate "github.com/rubenv/sql-migrate"`: Library migrasi database SQL otomatis.
+* `"database/sql"`: Library standar Go untuk interaksi SQL.
+* `"embed"`: Fitur Go untuk menyertakan file fisik `.sql` ke dalam program binary.
+* `"fmt"`: Library standar Go untuk mencetak teks ke terminal.
+* `migrate "github.com/rubenv/sql-migrate"`: Library migrasi SQL otomatis.
 
 #### B. Bedah Fungsi (Function) di File Ini:
 * **Fungsi: `DBMigration(dbParam *sql.DB)`**
-  * **Tujuan**: Menjalankan skrip migrasi SQL secara otomatis ke database PostgreSQL.
-  * **Parameter**:
-    * `dbParam *sql.DB`: Kunci koneksi database aktif yang dikirim dari file `main.go`. Tanpa parameter ini, fungsi migrasi tidak tahu ke database mana perintah SQL harus dijalankan.
+  * **Tujuan**: Menjalankan migrasi database otomatis.
+  * **Parameter**: `dbParam *sql.DB` (Pointer koneksi database aktif yang dikirim dari `main.go`).
   * **Bedah Isi Fungsi Baris demi Baris**:
-    1. `migrations := &migrate.EmbedFileSystemMigrationSource{ FileSystem: dbMigration, Root: "sql_migrations" }`: Menyiapkan sumber file migrasi dengan menunjuk ke sistem file virtual `dbMigration` di dalam folder `sql_migrations`.
+    1. `migrations := &migrate.EmbedFileSystemMigrationSource{ ... }`: Menyiapkan sumber file migrasi dari sistem file virtual `dbMigration` di folder `sql_migrations`.
     2. `n, errs := migrate.Exec(dbParam, "postgres", migrations, migrate.Up)`: Mengeksekusi migrasi.
-       * `n`: Menyimpan angka jumlah file migrasi yang sukses dijalankan.
-       * `errs`: Menampung objek error jika migrasi gagal.
-       * `"postgres"`: Menentukan jenis database yang dituju.
-       * `migrate.Up`: Arah migrasi untuk membuat/menambah struktur tabel.
-    3. `if errs != nil { panic(errs) }`: Pemeriksa error. Jika `errs` tidak kosong (artinya gagal), program dihentikan paksa dengan `panic()`.
-    4. `DbConnection = dbParam`: Menyimpan koneksi database yang valid ke variabel global `DbConnection`.
-    5. `fmt.Println(...)` : Mencetak pesan konfirmasi sukses migrasi ke terminal.
+       * `n`: Angka jumlah file migrasi yang sukses dijalankan.
+       * `errs`: Wadah penampung error jika migrasi gagal.
+    3. `if errs != nil { panic(errs) }`: Jika terjadi error, program dihentikan paksa dengan `panic()`.
+    4. `DbConnection = dbParam`: Menyimpan koneksi database ke variabel global `DbConnection`.
+    5. `fmt.Println(...)`: Mencetak pesan sukses ke terminal.
 
 ---
 
@@ -246,53 +239,49 @@ func DeleteCard(db *sql.DB, card entities.Card) (err error) {
 ```
 
 #### A. Penjelasan Library / Folder yang Di-import:
-* `"bab6/entities"`: Memanggil package `entities` agar bisa memakai cetakan struct `entities.Card`.
-* `"database/sql"`: Memanggil pustaka standar Go untuk mengelola tipe data koneksi database SQL (`*sql.DB`).
+* `"bab6/entities"`: Memanggil struct `Card`.
+* `"database/sql"`: Memanggil pustaka standar tipe data SQL.
 
-#### B. Bedah Fungsi-Fungsi (Functions) di File Ini:
+#### B. Bedah Setiap Fungsi (Function) di File Ini:
 
 1. **Fungsi: `GetCards(db *sql.DB) (result []entities.Card, err error)`**
-   * **Tujuan**: Mengambil seluruh daftar data kartu yang ada di dalam database.
-   * **Parameter**: `db *sql.DB` (koneksi database).
-   * **Return Values**: `result []entities.Card` (kumpulan data kartu) dan `err error` (status error). Menggunakan fitur *Named Return*.
-   * **Bedah Isi Fungsi Baris demi Baris**:
-     * `sql := "SELECT * FROM card"`: Menyiapkan string query SQL untuk memilih semua data dari tabel `card`.
+   * **Tujuan**: Mengambil seluruh daftar data kartu dari database.
+   * **Bedah Baris demi Baris**:
+     * `sql := "SELECT * FROM card"`: Menyiapkan query string SQL.
      * `rows, err := db.Query(sql)`: Menjalankan query `SELECT`. Variabel `rows` menampung banyak baris hasil database.
-     * `if err != nil { return }`: Jika query gagal, langsung keluar dari fungsi.
-     * `defer rows.Close()`: Menjadwalkan penutupan kursor `rows` di akhir fungsi agar RAM komputer tidak bocor.
-     * `for rows.Next()`: Perulangan untuk membaca hasil query baris demi baris.
-       * `var data entities.Card`: Wadah penampung sementara untuk 1 baris data kartu.
-       * `err = rows.Scan(&data.ID)`: Menyalin nilai kolom dari database ke alamat memori `&data.ID`.
-       * `result = append(result, data)`: Memasukkan data kartu ke dalam slice `result`.
-     * `return`: Mengembalikan hasil `result` dan `err`.
+     * `defer rows.Close()`: Menunda penutupan kursor baris hingga fungsi selesai.
+     * `for rows.Next()`: Perulangan membaca baris demi baris.
+       * `var data entities.Card`: Wadah penampung sementara 1 baris kartu.
+       * `err = rows.Scan(&data.ID)`: **`&` (Address-of)** mengambil alamat memori `data.ID` agar database bisa mengisi langsung nilainya.
+       * `result = append(result, data)`: Memasukkan data ke slice `result`.
 
 2. **Fungsi: `InsertCard(db *sql.DB, card entities.Card) (err error)`**
-   * **Tujuan**: Menyimpan/menambahkan data kartu baru ke database.
-   * **Parameter**: `db *sql.DB` dan `card entities.Card`.
-   * **Bedah Isi Fungsi Baris demi Baris**:
-     * `sql := "INSERT INTO card(id) values($1)"`: Menyusun perintah SQL `INSERT` dengan parameter pengaman `$1`.
-     * `_, err = db.Exec(sql, card.ID)`: Menjalankan perintah SQL perubahan data (`INSERT`). Hasil metadata diabaikan dengan `_`, dan error ditampung di `err`.
-     * `return err`: Mengembalikan status error (bernilai `nil` jika sukses).
+   * **Tujuan**: Menambahkan data kartu baru ke database.
+   * **Bedah Baris demi Baris**:
+     * `sql := "INSERT INTO card(id) values($1)"`: Query insert dengan parameter `$1`.
+     * `_, err = db.Exec(sql, card.ID)`: Menjalankan eksekusi query.
+       * **Penjelasan Simbol `_` (Blank Identifier)**: Fungsi `db.Exec` mengembalikan dua nilai yaitu `sql.Result` (metadata hasil eksekusi) dan `error`. Karena kita **tidak butuh** metadata `sql.Result` tersebut, kita wajib menuliskan tanda **`_`** sebagai pengganti variabel untuk **mengabaikannya**. Di Go, variabel yang sudah dibuat wajib dipakai; jika tidak dipakai, compiler akan protes error. Tanda `_` adalah solusi legal untuk mengabaikannya.
+     * `return err`: Mengembalikan status error.
 
 3. **Fungsi: `UpdateCard(db *sql.DB, card entities.Card) (err error)`**
-   * **Tujuan**: Memperbarui data kartu yang sudah ada di database.
-   * **Bedah Isi Fungsi**:
-     * `sql := "UPDATE card SET id = $1 WHERE id = $2"`: Perintah SQL untuk memperbarui kolom `id` berdasarkan kondisi tertentu.
-     * `_, err = db.Exec(sql, card.ID, "id_lama")`: Menjalankan query update dengan mengirimkan parameter data baru dan lama.
+   * **Tujuan**: Memperbarui data kartu.
+   * **Bedah Baris demi Baris**:
+     * `sql := "UPDATE card SET id = $1 WHERE id = $2"`: Query SQL untuk update data.
+     * `_, err = db.Exec(sql, card.ID, "id_lama")`: Menggunakan tanda **`_`** untuk **mengabaikan** nilai `sql.Result` yang tidak terpakai, dan hanya mengambil `err`.
      * `return err`: Mengembalikan status error.
 
 4. **Fungsi: `DeleteCard(db *sql.DB, card entities.Card) (err error)`**
    * **Tujuan**: Menghapus data kartu berdasarkan ID.
-   * **Bedah Isi Fungsi**:
-     * `sql := "DELETE FROM card WHERE id = $1"`: Perintah SQL penghapusan baris data.
-     * `_, err = db.Exec(sql, card.ID)`: Menjalankan query `DELETE` ke database.
+   * **Bedah Baris demi Baris**:
+     * `sql := "DELETE FROM card WHERE id = $1"`: Query SQL hapus data.
+     * `_, err = db.Exec(sql, card.ID)`: Menggunakan tanda **`_`** untuk **mengabaikan** return value pertama (`sql.Result`), karena kita hanya peduli pada status `err`.
      * `return err`: Mengembalikan status error.
 
 ---
 
-### 5.5. `controllers/card_bridge_controllers.go` (Logika Bisnis & HTTP Handler)
+### 5.6. `controllers/card_bridge_controllers.go` (Logika Bisnis & HTTP Handler)
 
-**Tugas File:** Pelayan yang menerima permintaan HTTP, meminta repository memproses ke database, dan mengantarkan balasan berformat JSON.
+**Tugas File:** Pelayan yang menerima permintaan HTTP, memanggil repository, dan mengirim balasan JSON.
 
 ```go
 package controllers
@@ -369,50 +358,44 @@ func DeleteCard(c *gin.Context) {
 ```
 
 #### A. Penjelasan Library / Folder yang Di-import:
-* `database "bab6/databases"`: Meng-import package `databases` buatan sendiri untuk mengakses `database.DbConnection`.
+* `database "bab6/databases"`: Meng-import package database lokal untuk mengakses koneksi.
 * `"bab6/entities"`: Meng-import struct `Card`.
-* `"bab6/repositories"`: Meng-import fungsi repository (*GetCards, InsertCard, dll*).
-* `"net/http"`: Library bawaan Go untuk kode status HTTP (`http.StatusOK`, `http.StatusInternalServerError`, dll).
-* `"github.com/gin-gonic/gin"`: Framework Gin untuk manajemen request HTTP (`gin.Context`) dan format JSON (`gin.H`).
+* `"bab6/repositories"`: Meng-import fungsi repository SQL.
+* `"net/http"`: Library HTTP status code.
+* `"github.com/gin-gonic/gin"`: Framework Gin untuk manajemen request/response.
 
-#### B. Bedah Fungsi-Fungsi (Functions) di File Ini:
+#### B. Bedah Setiap Fungsi (Function) di File Ini:
 
 1. **Fungsi: `GetCards(c *gin.Context)`**
-   * **Tujuan**: Menangani request HTTP `GET /cards` untuk menampilkan seluruh data kartu.
-   * **Parameter**: `c *gin.Context` (konteks request dan response Gin).
-   * **Bedah Isi Fungsi Baris demi Baris**:
-     * `var result gin.H`: Membuat variabel map dinamis (`gin.H`) untuk menyusun struktur JSON.
-     * `card, err := repositories.GetCards(database.DbConnection)`: Memanggil fungsi repository untuk mengambil data kartu dari PostgreSQL menggunakan koneksi global.
-     * `if err != nil`: Jika gagal, `result` diisi pesan error. Jika sukses, `result` diisi data kartu `card`.
-     * `c.JSON(http.StatusOK, result)`: Mengirimkan response HTTP berstatus `200 OK` dengan isi payload berupa JSON dari variabel `result`.
+   * **Tujuan**: Menangani request `GET /cards`.
+   * **Bedah Baris demi Baris**:
+     * `var result gin.H`: Membuat map dinamis JSON.
+     * `card, err := repositories.GetCards(database.DbConnection)`: Memanggil repository untuk mengambil data.
+     * `if err != nil`: Percabangan untuk mengisi `result` dengan pesan error atau data kartu.
+     * `c.JSON(http.StatusOK, result)`: Mengirim response JSON status `200 OK`.
 
 2. **Fungsi: `InsertCard(c *gin.Context)`**
-   * **Tujuan**: Menangani request HTTP `POST /card/input/:id` untuk menambah kartu baru.
-   * **Bedah Isi Fungsi Baris demi Baris**:
-     * `var card entities.Card`: Membuat instance struct `Card` kosong.
-     * `idCard := c.Param("id")`: Mengambil nilai parameter dinamis `:id` dari URL.
-     * `card.ID = idCard`: Memasukkan ID tersebut ke struct `card`.
-     * `err := repositories.InsertCard(database.DbConnection, card)`: Menyimpan data ke database.
-     * `if err != nil`: Jika gagal, kirim status `500 Internal Server Error` (`http.StatusInternalServerError`) dan hentikan fungsi dengan `return`.
-     * `c.JSON(http.StatusOK, card)`: Jika sukses, kirim status `200 OK` beserta data kartu.
+   * **Tujuan**: Menangani request `POST /card/input/:id`.
+   * **Bedah Baris demi Baris**:
+     * `idCard := c.Param("id")`: Mengambil parameter `:id` dari URL.
+     * `err := repositories.InsertCard(...)`: Menyimpan data ke database.
+     * `if err != nil`: Jika gagal, kirim status `500` (`http.StatusInternalServerError`).
+     * `c.JSON(http.StatusOK, card)`: Kirim status `200 OK` jika sukses.
 
 3. **Fungsi: `UpdateCard(c *gin.Context)`**
-   * **Tujuan**: Menangani request HTTP `PUT /card/update/:id` untuk memperbarui data kartu.
-   * **Bedah Isi Fungsi Baris demi Baris**:
-     * `if err := c.ShouldBindJSON(&card); err != nil`: Membaca format JSON yang dikirim pengguna di body request dan menyalinnya ke struct `card`. Jika formatnya salah, kirim status `400 Bad Request`.
-     * `err := repositories.UpdateCard(...)`: Menjalankan fungsi update di repository.
-     * `c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Diupdate"})`: Mengirim pesan sukses jika berhasil.
+   * **Tujuan**: Menangani request `PUT /card/update/:id`.
+   * **Bedah Baris demi Baris**:
+     * `if err := c.ShouldBindJSON(&card); err != nil`: Membaca body JSON dari klien. Jika gagal, kirim status `400 Bad Request`.
+     * `c.JSON(http.StatusOK, ...)`: Kirim pesan sukses update.
 
 4. **Fungsi: `DeleteCard(c *gin.Context)`**
-   * **Tujuan**: Menangani request HTTP `DELETE /card/delete/:id` untuk menghapus kartu.
-   * **Bedah Isi Fungsi Baris demi Baris**:
-     * `idCard := c.Param("id")`: Mengambil parameter `:id` dari path URL.
-     * `err := repositories.DeleteCard(...)`: Menghapus data dari database via repository.
-     * `c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Dihapus", "id": idCard})`: Mengirim response konfirmasi sukses penghapusan.
+   * **Tujuan**: Menangani request `DELETE /card/delete/:id`.
+   * **Bedah Baris demi Baris**:
+     * Mengambil ID dari URL, menghapus data via repository, lalu mengirim response sukses `200 OK`.
 
 ---
 
-### 5.6. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL & CORS)
+### 5.7. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL & CORS)
 
 **Tugas File:** Mengatur daftar alamat URL (endpoint), menentukan HTTP Method, dan mengatur izin CORS.
 
@@ -448,26 +431,23 @@ func StartServer() *gin.Engine {
 ```
 
 #### A. Penjelasan Library / Folder yang Di-import:
-* `"bab6/controllers"`: Memanggil package controllers.
-* `"time"`: Library waktu Go untuk pengaturan kedaluwarsa cache CORS.
+* `"bab6/controllers"`: Memanggil controllers.
+* `"time"`: Pengaturan durasi waktu cache CORS.
 * `"github.com/gin-contrib/cors"`: Middleware CORS resmi Gin.
 * `"github.com/gin-gonic/gin"`: Framework Gin.
 
 #### B. Bedah Fungsi (Function) di File Ini:
 * **Fungsi: `StartServer() *gin.Engine`**
-  * **Tujuan**: Menginisialisasi mesin router Gin, memasang middleware CORS, mendaftarkan semua endpoint URL API, dan mengembalikan objek engine router.
-  * **Bedah Isi Fungsi Baris demi Baris**:
-    1. `router := gin.Default()`: Membuat engine router Gin baru dengan fitur bawaan *Logger* dan *Recovery*.
-    2. `router.Use(cors.New(...))`: Menerapkan aturan CORS agar API bisa diakses oleh aplikasi luar/frontend web tanpa batasan domain.
-    3. `router.GET("/cards", controllers.GetCards)`: Mendaftarkan rute `GET` untuk melihat semua kartu.
-    4. `router.POST("/card/input/:id", controllers.InsertCard)`: Mendaftarkan rute `POST` untuk menambah kartu baru.
-    5. `router.PUT("/card/update/:id", controllers.UpdateCard)`: Mendaftarkan rute `PUT` untuk memperbarui kartu.
-    6. `router.DELETE("/card/delete/:id", controllers.DeleteCard)`: Mendaftarkan rute `DELETE` untuk menghapus kartu.
-    7. `return router`: Mengembalikan objek `router` yang sudah siap dijalankan di `main.go`.
+  * **Tujuan**: Menginisialisasi router Gin dan mendaftarkan endpoint rute API.
+  * **Bedah Baris demi Baris**:
+    1. `router := gin.Default()`: Membuat mesin router Gin baru.
+    2. `router.Use(cors.New(...))`: Mengatur izin CORS.
+    3. `router.GET`, `router.POST`, `router.PUT`, `router.DELETE`: Mendaftarkan endpoint URL ke fungsi controller.
+    4. `return router`: Mengembalikan objek router.
 
 ---
 
-### 5.7. `main.go` (Pintu Masuk Utama Aplikasi)
+### 5.8. `main.go` (Pintu Masuk Utama Aplikasi)
 
 **Tugas File:** Titik awal eksekusi program. Menyiapkan parameter database, membuka koneksi PostgreSQL, memanggil migrasi, dan menyalakan server web.
 
@@ -521,24 +501,23 @@ func main() {
 ```
 
 #### A. Penjelasan Library / Folder yang Di-import:
-* `database "bab6/databases"`: Meng-import package database lokal untuk migrasi.
-* `"bab6/routers"`: Meng-import package routers untuk menjalankan `StartServer()`.
-* `"database/sql"`: Library standar Go untuk interaksi SQL.
-* `"fmt"`: Library pemformatan string (untuk `psqlInfo`).
-* `"log"`: Library untuk mencatat log error fatal (`log.Fatal`).
-* `_ "github.com/lib/pq"`: *Side-effect import* untuk mendaftarkan driver PostgreSQL ke Go.
+* `database "bab6/databases"`: Package migrasi database lokal.
+* `"bab6/routers"`: Package routers server.
+* `"database/sql"`: Library interaksi SQL Go.
+* `"fmt"`: Pemformatan string.
+* `"log"`: Logging error fatal.
+* `_ "github.com/lib/pq"`: **Side-Effect Import** (menggunakan tanda **`_`** di depan untuk mendaftarkan driver PostgreSQL ke package standar `database/sql` tanpa memanggil fungsinya secara langsung).
 
 #### B. Bedah Fungsi (Function) di File Ini:
 * **Fungsi: `main()`**
-  * **Tujuan**: Fungsi utama yang pertama kali dieksekusi oleh Go saat program dijalankan. Menghubungkan database, melakukan migrasi tabel, dan menyalakan web server.
-  * **Bedah Isi Fungsi Baris demi Baris**:
-    1. `var PORT = ":50000"`: Menentukan port tempat server HTTP berjalan (`port 50000`).
-    2. `psqlInfo := fmt.Sprintf(...)`: Merangkai teks koneksi (*connection string*) PostgreSQL berdasarkan konstanta konfigurasi (`host`, `port`, `user`, `password`, `dbName`).
-    3. `DB, err = sql.Open("postgres", psqlInfo)`: Membuka koneksi awal ke database PostgreSQL.
-    4. `if err != nil { log.Fatal(...) }`: Jika koneksi gagal dibuat, program langsung dihentikan oleh `log.Fatal`.
-    5. `database.DBMigration(DB)`: Memanggil fungsi migrasi tabel otomatis di folder `databases` dengan mengirimkan parameter koneksi `DB`.
-    6. `defer DB.Close()`: Menjadwalkan penutupan koneksi database secara otomatis ketika program utama berhenti.
-    7. `routers.StartServer().Run(PORT)`: Menyalakan web server HTTP Gin. Perintah `.Run()` bersifat *blocking* (menahan program agar terus aktif mendengarkan request dari pengguna).
+  * **Tujuan**: Fungsi utama eksekusi program.
+  * **Bedah Baris demi Baris**:
+    1. `var PORT = ":50000"`: Menentukan port server.
+    2. `psqlInfo := fmt.Sprintf(...)`: Merangkai koneksi string database.
+    3. `DB, err = sql.Open(...)`: Membuka koneksi database.
+    4. `database.DBMigration(DB)`: Menjalankan migrasi database.
+    5. `defer DB.Close()`: Menutup koneksi database di akhir program.
+    6. `routers.StartServer().Run(PORT)`: Menyalakan web server.
 
 ---
 

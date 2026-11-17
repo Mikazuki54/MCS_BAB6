@@ -1,5 +1,5 @@
 # Panduan & Dokumentasi Kode Lengkap REST API Card Bridge (`bab6`)
-*Panduan Ramah Pemula & Orang Awam: Penjelasan Kode Sangat Mendalam, Bedah Simbol/Sintaks (seperti `_`, `*`, `:=`, `&`), Serta Bedah Tuntas Setiap Function di Masing-masing File.*
+*Panduan Ramah Pemula & Orang Awam: Penjelasan Kode Sangat Mendalam, Bedah Simbol/Sintaks (seperti `_`, `*`, `:=`, `&`), Penjelasan CORS, Serta Bedah Tuntas Setiap Function di Masing-masing File.*
 
 ---
 
@@ -34,22 +34,23 @@ Sebelum masuk ke kode, mari kita pahami apa yang dibuat oleh aplikasi ini dengan
 * **REST API**: Cara aplikasi saling berkomunikasi menggunakan protokol HTTP. Klien mengirim *Request* (permintaan) dan server memberikan *Response* (jawaban berupa teks JSON).
 * **HTTP Methods**:
   * **`GET`**: Membaca / mengambil data (seperti melihat menu).
-  * **`POST`**: Menambahkan data baru (seperti memesan makanan baru).
+  * **`POST`**: Menciptakan/menambahkan data baru (seperti memesan makanan baru).
   * **`PUT`**: Memperbarui/mengubah data yang *sudah ada* (seperti mengganti isi pesanan yang salah).
   * **`DELETE`**: Menghapus data (seperti membatalkan pesanan).
 * **Layered Architecture**: Memisah-misah kode ke beberapa folder agar jika ada perubahan atau kerusakan, kita tahu persis folder mana yang harus diperbaiki tanpa mengganggu bagian lain.
 
 ---
 
-## 📖 2. Glosarium Simbol & Istilah Khusus di Golang (Wajib Baca untuk Pemula)
+## 📖 2. Glosarium Simbol, CORS, & Istilah Khusus di Golang (Wajib Baca untuk Pemula)
 
-Sebelum membaca kode di bawah, pahami dulu arti dari simbol-simbol khusus yang sering muncul dalam bahasa Go:
+Sebelum membaca kode di bawah, pahami dulu arti dari simbol-simbol khusus dan istilah penting seperti **CORS**:
 
-| Simbol / Istilah | Nama Resmi | Penjelasan Sederhana untuk Pemula |
+| Istilah / Simbol | Nama Resmi | Penjelasan Sederhana untuk Pemula |
 | :--- | :--- | :--- |
+| **CORS** | **Cross-Origin Resource Sharing** | **Satpam keamanan browser**. Bayangkan server API kita berada di alamat `A` dan website frontend (React/Vue) berada di alamat `B`. Secara *default*, browser melarang website di alamat `B` mengambil data dari server `A` demi keamanan. Agar diizinkan, server kita harus memasang izin CORS yang menyatakan: *"Hei browser, izinkan website lain mengambil data dariku ya!"* |
 | **`_`** | **Blank Identifier** | Pengganti variabel penampung kosong. Digunakan untuk **mengabaikan** nilai atau hasil kembalian (*return value*) yang tidak ingin kita pakai di dalam kode. |
 | **`*`** | **Pointer / Dereference** | Menunjuk ke alamat memori asli suatu data. Contoh `*sql.DB` artinya variabel ini memegang kunci alamat memori asli dari koneksi database. |
-| **`&`** | **Address-of Operator** | Mengambil alamat memori dari sebuah variabel. Contoh `&data.ID` artinya kita meminta alamat kotak memori variabel `data.ID` agar bisa diisi langsung oleh database. |
+| **`&`** | **Address-of Operator** | mengambil alamat memori dari sebuah variabel. Contoh `&data.ID` artinya kita meminta alamat kotak memori variabel `data.ID` agar bisa diisi langsung oleh database. |
 | **`:=`** | **Short Variable Declaration** | Cara cepat membuat variabel baru sekaligus mengisikan nilainya tanpa perlu menulis kata kunci `var`. |
 | **`[]`** | **Slice** | Kumpulan data atau daftar (list) berurutan yang ukurannya bisa bertambah atau berkurang (mirip *Array* di bahasa lain). |
 | **`defer`** | **Defer Statement** | Perintah tunda yang menyuruh Go mengeksekusi suatu baris kode (misal `rows.Close()`) persis di akhir sebelum fungsi selesai. |
@@ -77,9 +78,9 @@ go mod init proyek-baru
 
 ### Langkah 4: Install Pustaka / Dependensi Eksternal
 1. **Gin Gonic (Web Server)**: `go get -u "github.com/gin-gonic/gin"`
-2. **PostgreSQL Driver**: `go get -u "github.com/lib/pq"`
-3. **SQL Migrate**: `go get -u "github.com/rubenv/sql-migrate"`
-4. **Godotenv**: `go get -u "github.com/joho/godotenv"`
+2. **CORS Middleware**: `go get -u "github.com/gin-contrib/cors"`
+3. **PostgreSQL Driver**: `go get -u "github.com/lib/pq"`
+4. **SQL Migrate**: `go get -u "github.com/rubenv/sql-migrate"`
 
 ---
 
@@ -279,7 +280,7 @@ func DeleteCard(db *sql.DB, card entities.Card) (err error) {
 
 ---
 
-### 5.6. `controllers/card_bridge_controllers.go` (Logika Bisnis & HTTP Handler)
+### 5.5. `controllers/card_bridge_controllers.go` (Logika Bisnis & HTTP Handler)
 
 **Tugas File:** Pelayan yang menerima permintaan HTTP, memanggil repository, dan mengirim balasan JSON.
 
@@ -395,9 +396,9 @@ func DeleteCard(c *gin.Context) {
 
 ---
 
-### 5.7. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL & CORS)
+### 5.6. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL & CORS)
 
-**Tugas File:** Mengatur daftar alamat URL (endpoint), menentukan HTTP Method, dan mengatur izin CORS.
+**Tugas File:** Mengatur daftar alamat URL (endpoint), menentukan HTTP Method, dan mengatur izin CORS agar frontend bisa mengakses API.
 
 ```go
 package routers
@@ -433,21 +434,23 @@ func StartServer() *gin.Engine {
 #### A. Penjelasan Library / Folder yang Di-import:
 * `"bab6/controllers"`: Memanggil controllers.
 * `"time"`: Pengaturan durasi waktu cache CORS.
-* `"github.com/gin-contrib/cors"`: Middleware CORS resmi Gin.
+* `"github.com/gin-contrib/cors"`: **Middleware CORS**. Berfungsi mengatur izin lintas domain agar browser (seperti React, Vue, atau aplikasi frontend lain) tidak memblokir akses ke API kita.
 * `"github.com/gin-gonic/gin"`: Framework Gin.
 
 #### B. Bedah Fungsi (Function) di File Ini:
 * **Fungsi: `StartServer() *gin.Engine`**
-  * **Tujuan**: Menginisialisasi router Gin dan mendaftarkan endpoint rute API.
+  * **Tujuan**: Menginisialisasi router Gin, memasang aturan CORS, dan mendaftarkan endpoint rute API.
   * **Bedah Baris demi Baris**:
     1. `router := gin.Default()`: Membuat mesin router Gin baru.
-    2. `router.Use(cors.New(...))`: Mengatur izin CORS.
+    2. `router.Use(cors.New(...))`: Mengaktifkan satpam CORS dengan aturan:
+       * `AllowOrigins: []string{"*"}`: Mengizinkan semua asal domain (`*`) untuk mengakses API.
+       * `AllowMethods`: Mengizinkan metode HTTP apa saja (`GET`, `POST`, `PUT`, `DELETE`).
     3. `router.GET`, `router.POST`, `router.PUT`, `router.DELETE`: Mendaftarkan endpoint URL ke fungsi controller.
     4. `return router`: Mengembalikan objek router.
 
 ---
 
-### 5.8. `main.go` (Pintu Masuk Utama Aplikasi)
+### 5.7. `main.go` (Pintu Masuk Utama Aplikasi)
 
 **Tugas File:** Titik awal eksekusi program. Menyiapkan parameter database, membuka koneksi PostgreSQL, memanggil migrasi, dan menyalakan server web.
 

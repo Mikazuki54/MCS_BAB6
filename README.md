@@ -1,199 +1,148 @@
-# Panduan & Dokumentasi Kode Lengkap REST API Card Bridge (`bab6`)
-*Panduan Ramah Pemula & Orang Awam: Penjelasan Kode 100% Mendalam, Bedah Simbol/Sintaks, serta Bedah Tuntas Setiap Baris Kode di Dalam Setiap Function.*
+# Dokumentasi Lengkap REST API Card Bridge (`bab6`)
+*Panduan Ramah Pemula: Bedah Tuntas Seluruh File, Library, Variabel, dan Fungsi Tanpa Terlewat.*
 
 ---
 
 ## 💡 1. Konsep Dasar & Analogia Sederhana (Untuk Orang Awam)
 
-Analogi: **Restoran**.
-- **ROUTER**: Kasir yang mengarahkan pesanan.
-- **CONTROLLER**: Pelayan yang memastikan format pesanan benar dan menyajikan makanan (JSON).
-- **REPOSITORY**: Koki yang memasak/mengambil bahan langsung ke gudang (Database).
-- **DATABASE**: PostgreSQL (Gudang data).
+Aplikasi ini menggunakan **Layered Architecture**. Bayangkan Restoran:
+
+```
+[ Pelanggan ]
+       │
+       ▼  1. Pesan (HTTP Request)
+┌──────────────────────┐
+│  A. ROUTER (Kasir)   │ -> Menerima pesanan, mengarahkan ke Pelayan.
+└──────────────────────┘
+       │
+       ▼  2. Pesanan
+┌──────────────────────┐
+│  B. CONTROLLER (Waiter)│ -> Periksa pesanan, sajikan hasil (JSON).
+└──────────────────────┘
+       │
+       ▼  3. Olah Pesanan
+┌──────────────────────┐
+│  C. REPOSITORY (Koki)│ -> Olah data langsung di Dapur (Query SQL).
+└──────────────────────┘
+       │
+       ▼  4. Bahan Baku
+┌──────────────────────┐
+│  D. DATABASE (Gudang)│ -> PostgreSQL (Tempat simpan data).
+└──────────────────────┘
+```
 
 ---
 
-## 📖 2. Glosarium Simbol & Istilah Penting
+## 📖 2. Glosarium & Simbol Penting
 
 | Simbol / Istilah | Penjelasan Sederhana |
 | :--- | :--- |
-| **`//go:embed`** | Perintah untuk membungkus file eksternal (seperti `.sql`) ke dalam binary aplikasi. |
-| **`_` (Blank Identifier)** | Variabel "tempat sampah" untuk mengabaikan hasil fungsi yang tidak dipakai agar tidak error. |
-| **`*` (Pointer)** | Kunci akses langsung ke alamat memori asli data. |
-| **`&` (Address-of)** | Mengambil lokasi memori variabel agar bisa diisi nilainya oleh fungsi lain (misal dari database). |
+| **`//go:embed`** | Perintah *compiler* untuk membungkus file luar (seperti `.sql`) ke dalam program. |
+| **`_` (Blank ID)** | Variabel "tempat sampah" untuk mengabaikan hasil yang tidak terpakai. |
+| **`*` (Pointer)** | Alamat lokasi memori asli data. |
+| **`&` (Address-of)** | Mengambil lokasi memori variabel agar bisa diisi nilainya oleh database. |
 | **`:=`** | Cara cepat membuat & mengisi variabel baru. |
-| **`defer`** | Perintah "tunda dulu" agar kode dijalankan saat fungsi hampir selesai. |
-| **CORS** | Keamanan browser agar website luar tidak sembarangan mengambil data API kita. |
+| **`defer`** | Tunda eksekusi kode sampai fungsi selesai. |
+| **CORS** | Keamanan agar website luar boleh akses API kita. |
 
 ---
 
-## 🛠️ 3. Langkah-Langkah Membuat Proyek Go Baru
+## 🛠️ 3. Instalasi Proyek (Langkah demi Langkah)
 
-1. `mkdir proyek-baru` & `cd proyek-baru`
-2. `go mod init proyek-baru`
-3. `go get github.com/gin-gonic/gin`
-4. `go get github.com/lib/pq`
-5. `go get github.com/rubenv/sql-migrate`
+1. **Install Go & Inisialisasi**:
+   ```bash
+   mkdir testbab6 && cd testbab6
+   go mod init bab6
+   ```
+
+2. **Install Library**:
+   ```bash
+   go get github.com/gin-gonic/gin
+   go get github.com/lib/pq
+   go get github.com/rubenv/sql-migrate
+   ```
 
 ---
 
-## 📘 4. Bedah Tuntas Setiap Function per File
-
----
+## 📘 4. Bedah Rinci File & Fungsi (Sesuai Alur Sistem)
 
 ### 4.1. `entities/card_bridge_entity.go`
-**Tugas:** Menentukan wadah cetakan data (`struct`).
-
-```go
-package entities
-
-type Card struct {
-	ID string `json: "id"`
-}
-```
-* **Penjelasan:**
-  * `type Card struct`: Membuat cetakan data bernama `Card`.
-  * `ID string`: Wadah teks bernama `ID`.
-  * `` `json: "id"` ``: Agar saat dikirim ke format JSON, nama fieldnya menjadi `id`.
+**Tugas:** Wadah data (Struct) untuk objek kartu.
+* **Import:** Tidak ada.
+* **Isi:**
+  ```go
+  type Card struct { ID string `json: "id"` }
+  ```
+  * `ID`: Variabel teks. `json:"id"`: Label agar saat jadi JSON namanya menjadi `id`.
 
 ---
 
 ### 4.2. `databases/sql_migrations/1_initiate.sql`
-**Tugas:** Skrip pembuat tabel di database.
-
-```sql
--- +migrate Up
-CREATE TABLE card (id varchar(20));
-```
-* **Penjelasan:** `-- +migrate Up` adalah penanda untuk alat migrasi agar menjalankan perintah SQL di bawahnya.
+**Tugas:** Perintah SQL pembuat tabel.
+* **Penjelasan:**
+  * `-- +migrate Up`: Instruksi alat migrasi agar menjalankan perintah ini saat aplikasi mulai.
+  * `CREATE TABLE card (id varchar(20));`: SQL murni untuk membuat tabel `card`.
 
 ---
 
 ### 4.3. `databases/database.go`
-**Tugas:** Mengurus koneksi database dan menjalankan migrasi.
-
-```go
-// ... (imports)
-//go:embed sql_migrations/*.sql
-var dbMigration embed.FS
-var DbConnection *sql.DB
-
-func DBMigration(dbParam *sql.DB) {
-	migrations := &migrate.EmbedFileSystemMigrationSource{
-		FileSystem: dbMigration,
-		Root:       "sql_migrations",
-	}
-	n, errs := migrate.Exec(dbParam, "postgres", migrations, migrate.Up)
-
-	if errs != nil {
-		panic(errs)
-	}
-	DbConnection = dbParam
-	fmt.Println("Migrasi berhasil dilakukan", n, migrations)
-}
-```
-* **Bedah Fungsi `DBMigration(dbParam *sql.DB)`**:
-  * `dbParam *sql.DB`: Kunci koneksi database yang diterima dari `main.go`.
-  * `migrations := ...`: Menyiapkan konfigurasi file SQL dari hasil *embed*.
-  * `migrate.Exec(...)`: Perintah utama menjalankan migrasi.
-    * `n`: Menyimpan jumlah file SQL yang sukses.
-    * `errs`: Menyimpan pesan error jika gagal.
-  * `if errs != nil { panic(errs) }`: Jika ada error, hentikan program paksa.
-  * `DbConnection = dbParam`: Simpan koneksi ke variabel global agar bisa dipakai file lain.
+**Tugas:** Koneksi database & migrasi otomatis.
+* **Import:** `database/sql`, `embed`, `fmt`, `sql-migrate`.
+* **Variabel Penting:**
+  * `//go:embed ...`: Perintah agar file SQL masuk ke dalam file program hasil *compile*.
+  * `DbConnection *sql.DB`: Variabel global kunci koneksi database.
+* **Fungsi: `DBMigration(dbParam *sql.DB)`**
+  * `dbParam`: Parameter kunci koneksi dari `main.go`.
+  * `migrate.Exec(...)`: Fungsi untuk menjalankan SQL migrasi.
+  * `panic(errs)`: Berhenti paksa jika ada error konfigurasi.
 
 ---
 
 ### 4.4. `repositories/card_bridge_repo.go`
-**Tugas:** Tempat menjalankan perintah SQL ke database.
-
-#### A. Fungsi `GetCards(db *sql.DB) (result []entities.Card, err error)`
-```go
-func GetCards(db *sql.DB) (result []entities.Card, err error) {
-	sql := "SELECT * FROM card"            // 1. Siapkan string query SQL
-	rows, err := db.Query(sql)             // 2. Eksekusi query SELECT
-	if err != nil { return }               // 3. Jika error, keluar fungsi
-	defer rows.Close()                     // 4. Pastikan rows ditutup di akhir
-
-	for rows.Next() {                      // 5. Perulangan membaca hasil query
-		var data entities.Card             // 6. Siapkan wadah 1 data kartu
-		err = rows.Scan(&data.ID)          // 7. Salin kolom database ke memori &data.ID
-		if err != nil { return }           // 8. Cek error saat scan
-		result = append(result, data)      // 9. Masukkan ke daftar hasil
-	}
-	return                                 // 10. Kembalikan data dan error
-}
-```
-
-#### B. Fungsi `InsertCard(db *sql.DB, card entities.Card) (err error)`
-```go
-func InsertCard(db *sql.DB, card entities.Card) (err error) {
-	sql := "INSERT INTO card(id) values($1)" // 1. Siapkan query INSERT
-	_, err = db.Exec(sql, card.ID)           // 2. Eksekusi perintah (ignore metadata dengan _)
-	return err                               // 3. Kembalikan error
-}
-```
-
-#### C. Fungsi `UpdateCard` & `DeleteCard`
-* Isinya sama dengan `InsertCard`, hanya berbeda perintah SQL (`UPDATE` atau `DELETE`) dan jumlah parameter.
+**Tugas:** Eksekusi perintah SQL (CRUD).
+* **Import:** `bab6/entities`, `database/sql`.
+* **Fungsi `GetCards(db *sql.DB)`**:
+  * `db.Query(sql)`: Jalankan perintah baca data.
+  * `rows.Next()` & `rows.Scan(&data.ID)`: Ambil data dari SQL ke variabel Go.
+* **Fungsi `InsertCard`, `UpdateCard`, `DeleteCard`**:
+  * `db.Exec(sql, ...)`: Jalankan perintah ubah data.
+  * `_`: Mengabaikan *metadata* hasil eksekusi (karena kita hanya butuh error-nya).
 
 ---
 
 ### 4.5. `controllers/card_bridge_controllers.go`
-**Tugas:** Menerima permintaan HTTP, memanggil Repository, dan mengantar balasan JSON.
-
-#### A. Fungsi `GetCards(c *gin.Context)`
-```go
-func GetCards(c *gin.Context) {
-	var result gin.H
-	card, err := repositories.GetCards(database.DbConnection) // 1. Panggil repo
-	if err != nil { result = gin.H{"result": err.Error()} } // 2. Jika gagal
-	else { result = gin.H{"result": card} }                   // 3. Jika sukses
-	c.JSON(http.StatusOK, result)                             // 4. Kirim JSON
-}
-```
-
-#### B. Fungsi `InsertCard`, `UpdateCard`, `DeleteCard`
-* Intinya sama: `c.Param` atau `c.ShouldBindJSON` mengambil data dari user -> Panggil `repositories` -> Jika `err != nil` kirim error, jika sukses kirim pesan berhasil dengan `c.JSON`.
+**Tugas:** Menangani permintaan HTTP (masuk & keluar).
+* **Import:** `database`, `entities`, `repositories`, `net/http`, `gin`.
+* **Fungsi `GetCards(c *gin.Context)`**:
+  * Memanggil repo, lalu kirim JSON.
+* **Fungsi `InsertCard`, `UpdateCard`, `DeleteCard`**:
+  * `c.Param("id")`: Ambil ID dari URL.
+  * `c.ShouldBindJSON(...)`: Ambil data dari JSON body (khusus `PUT/POST`).
+  * `c.JSON(http.StatusOK, ...)`: Kirim jawaban sukses.
 
 ---
 
 ### 4.6. `routers/card_bridge_routers.go`
-**Tugas:** Mendaftarkan alamat URL ke fungsi di Controller.
-
-```go
-func StartServer() *gin.Engine {
-	router := gin.Default() // 1. Buat engine router
-	
-    // 2. Middleware CORS (Satpam Browser)
-	router.Use(cors.New(cors.Config{...})) 
-	
-	router.GET("/cards", controllers.GetCards) // 3. Daftar rute URL
-	// ... (rute lainnya)
-
-	return router // 4. Kembalikan engine
-}
-```
+**Tugas:** Mengarahkan alamat URL ke fungsi di `Controller`.
+* **Import:** `controllers`, `cors`, `gin`.
+* **Fungsi `StartServer()`**:
+  * `cors.New(...)`: Mengatur izin domain agar website lain tidak diblokir.
+  * `router.GET/POST/PUT/DELETE`: Mendaftarkan alamat URL ke controller.
 
 ---
 
-### 4.7. `main.go` (Entry Point)
-**Tugas:** Menghubungkan database, migrasi, dan menyalakan server web.
+### 4.7. `main.go`
+**Tugas:** Titik masuk utama aplikasi (Main Program).
+* **Import:** `database`, `routers`, `sql`, `fmt`, `log`, `lib/pq` (driver SQL).
+* **Fungsi `main()`**:
+  * `sql.Open(...)`: Membuka koneksi database.
+  * `database.DBMigration(DB)`: Menjalankan migrasi.
+  * `routers.StartServer().Run(PORT)`: Menyalakan server web.
 
-```go
-func main() {
-	var PORT = ":50000"
-    // 1. Konfigurasi String PostgreSQL
-	psqlInfo := fmt.Sprintf(...)
+---
 
-    // 2. Buka koneksi database
-	DB, err = sql.Open("postgres", psqlInfo)
-	if err != nil { log.Fatal(...) }
-
-    // 3. Jalankan migrasi
-	database.DBMigration(DB) 
-	defer DB.Close() // 4. Tutup koneksi saat program mati
-
-    // 5. Jalankan server web
-	routers.StartServer().Run(PORT) 
-}
-```
+## 🚀 5. Cara Menjalankan
+1. `CREATE DATABASE mcsbab6;` (di PostgreSQL).
+2. Sesuaikan password di `main.go`.
+3. `go mod tidy`
+4. `go run main.go`

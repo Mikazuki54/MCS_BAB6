@@ -37,11 +37,99 @@ Sebelum masuk ke kode, mari kita pahami apa yang dibuat oleh aplikasi ini dengan
   * **`POST`**: Menambahkan data baru (seperti memesan makanan baru).
   * **`PUT`**: Memperbarui/mengubah data yang *sudah ada* (seperti mengganti isi pesanan yang salah).
   * **`DELETE`**: Menghapus data (seperti membatalkan pesanan).
-* **Layered Architecture**: Memisah-misah kode ke beberapa folder (Router, Controller, Repository, Entity, Database) agar jika ada perubahan atau kerusakan, kita tahu persis folder mana yang harus diperbaiki tanpa mengganggu bagian lain.
+* **Layered Architecture**: Memisah-misah kode ke beberapa folder (Router, Controller, Repository, Entity, Database) agar jika ada perubahan atau kerusakan, kita tahu persis folder mana yang harus memperbaiki tanpa mengganggu bagian lain.
 
 ---
 
-## 📁 2. Struktur Direktori Proyek
+## 📖 2. Glosarium Istilah Pemula
+
+*Baca ini agar lebih mudah memahami istilah teknis di bawah:*
+
+| Istilah | Penjelasan Sederhana untuk Pemula |
+| :--- | :--- |
+| **Golang / Go** | Bahasa pemrograman yang cepat, ringan, dan cocok untuk backend server. |
+| **Gin Gonic** | Alat bantu (framework) untuk membuat web server di Go. |
+| **POST** | Metode HTTP untuk **menambah** data baru. |
+| **GET** | Metode HTTP untuk **mengambil/membaca** data. |
+| **PUT** | Metode HTTP untuk **memperbarui/mengubah** data yang sudah ada (secara keseluruhan). |
+| **DELETE** | Metode HTTP untuk **menghapus** data. |
+| **Struct** | Fitur Go untuk membuat wadah tipe data sendiri (seperti objek). |
+| **JSON** | Format teks pertukaran data di internet (`"key": "value"`). |
+
+---
+
+## 🛠️ 3. Langkah-Langkah Membuat Proyek Go Baru Menggunakan Framework Gin
+
+Bagi pemula yang ingin membuat proyek Go baru dari nol menggunakan framework Gin, ikuti tahapan di bawah ini:
+
+### Langkah 1: Install Golang
+Pastikan Go sudah terinstal di komputer Anda. Cek melalui terminal:
+```bash
+go version
+```
+
+### Langkah 2: Buat Folder Proyek Baru
+Buka terminal/command prompt, buat folder proyek baru, lalu masuk ke dalam folder tersebut:
+```bash
+mkdir proyek-baru
+cd proyek-baru
+```
+
+### Langkah 3: Inisialisasi Modul Go (`go mod`)
+Ketik perintah berikut untuk membuat file `go.mod` (pengenal modul proyek):
+```bash
+go mod init proyek-baru
+```
+*(Ganti `proyek-baru` dengan nama modul/proyek Anda).*
+
+### Langkah 4: Install Framework Gin Gonic
+Unduh dan pasang framework Gin ke dalam proyek Anda:
+```bash
+go get -u github.com/gin-gonic/gin
+```
+
+### Langkah 5: Buat File `main.go`
+Buat file bernama `main.go` di dalam folder proyek Anda, lalu isi dengan kode sederhana web server Gin berikut:
+```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+	// 1. Membuat router default Gin
+	r := gin.Default()
+
+	// 2. Membuat endpoint GET sederhana
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+
+	// 3. Menjalankan server di port 8080
+	r.Run(":8080")
+}
+```
+
+### Langkah 6: Jalankan Program
+Ketik perintah berikut di terminal:
+```bash
+go run main.go
+```
+Buka browser atau Postman, akses **`http://localhost:8080/ping`**, dan Anda akan melihat response JSON:
+```json
+{
+  "message": "pong"
+}
+```
+
+---
+
+## 📁 4. Struktur Direktori Proyek
 
 ```text
 testbab6/
@@ -65,11 +153,11 @@ testbab6/
 
 ---
 
-## 📘 3. Penjelasan Rinci Kode Baris demi Baris & Sintaks
+## 📘 5. Penjelasan Rinci Kode Baris demi Baris & Sintaks
 
 ---
 
-### 3.1. `entities/card_bridge_entity.go` (Wadah Data Kartu)
+### 5.1. `entities/card_bridge_entity.go` (Wadah Data Kartu)
 
 **Tugas File:** Mendefinisikan bentuk data kartu yang dipakai dalam program Go dan format teks JSON saat dikirim ke pemanggil API.
 
@@ -94,7 +182,7 @@ type Card struct {
 
 ---
 
-### 3.2. `databases/sql_migrations/1_initiate.sql` (Skrip Pembuat Tabel)
+### 5.2. `databases/sql_migrations/1_initiate.sql` (Skrip Pembuat Tabel)
 
 **Tugas File:** Membuat tabel `card` di PostgreSQL secara otomatis saat aplikasi pertama kali berjalan.
 
@@ -117,7 +205,7 @@ CREATE TABLE card (
 
 ---
 
-### 3.3. `databases/database.go` (Pengelola Koneksi DB & Migrasi Otomatis)
+### 5.3. `databases/database.go` (Pengelola Koneksi DB & Migrasi Otomatis)
 
 **Tugas File:** Membaca file `.sql`, mengeksekusi pembuatan tabel ke PostgreSQL secara otomatis, dan menyimpan koneksi database agar siap dipakai oleh fungsi lain.
 
@@ -173,7 +261,7 @@ func DBMigration(dbParam *sql.DB) {
 
 ---
 
-### 3.4. `repositories/card_bridge_repo.go` (Perintah Query SQL Langsung)
+### 5.4. `repositories/card_bridge_repo.go` (Perintah Query SQL Langsung)
 
 **Tugas File:** Tempat berkumpulnya fungsi yang berhubungan langsung dengan database PostgreSQL (menjalankan query `SELECT`, `INSERT`, `UPDATE`, `DELETE`).
 
@@ -201,7 +289,7 @@ func UpdateCard(db *sql.DB, card entities.Card) (err error) {
 
 ---
 
-### 3.5. `controllers/card_bridge_controllers.go` (Pengatur Alur Request & Response HTTP)
+### 5.5. `controllers/card_bridge_controllers.go` (Pengatur Alur Request & Response HTTP)
 
 **Tugas File:** Menerima input dari pengguna, meminta repository memproses ke database, dan mengembalikan jawaban dalam format teks JSON.
 
@@ -231,7 +319,7 @@ func UpdateCard(c *gin.Context) {
 
 ---
 
-### 3.6. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL & CORS)
+### 5.6. `routers/card_bridge_routers.go` (Pendaftaran Alamat URL & CORS)
 
 **Tugas File:** Mengatur daftar alamat URL (endpoint), menentukan HTTP Method (`GET`, `POST`, `PUT`, `DELETE`), dan mengatur akses izin domain eksternal (*CORS*).
 
@@ -246,28 +334,25 @@ func UpdateCard(c *gin.Context) {
 
 ---
 
-## 📖 4. Glosarium Istilah Pemula
+## 🚀 6. Cara Menjalankan Proyek Utama (`bab6`)
 
-| Istilah | Penjelasan Sederhana untuk Pemula |
-| :--- | :--- |
-| **Golang / Go** | Bahasa pemrograman yang cepat, ringan, dan cocok untuk backend server. |
-| **Gin Gonic** | Alat bantu (framework) untuk membuat web server di Go. |
-| **POST** | Metode HTTP untuk **menambah** data baru. |
-| **GET** | Metode HTTP untuk **mengambil/membaca** data. |
-| **PUT** | Metode HTTP untuk **memperbarui/mengubah** data yang sudah ada (secara keseluruhan). |
-| **DELETE** | Metode HTTP untuk **menghapus** data. |
-| **Struct** | Fitur Go untuk membuat wadah tipe data sendiri (seperti objek). |
-| **JSON** | Format teks pertukaran data di internet (`"key": "value"`). |
-
----
-
-## 🚀 5. Cara Menjalankan Proyek
-
-*(Ikuti panduan sebelumnya untuk menyiapkan database dan menjalankan aplikasi)*
+1. **Buat Database PostgreSQL**
+   ```sql
+   CREATE DATABASE mcsbab6;
+   ```
+2. **Sesuaikan Konfigurasi** di `main.go` (`password` dan `dbName`).
+3. **Unduh Dependensi**
+   ```bash
+   go mod tidy
+   ```
+4. **Jalankan Aplikasi**
+   ```bash
+   go run main.go
+   ```
 
 ---
 
-## 🧪 6. Pengujian Endpoint API (Termasuk PUT)
+## 🧪 7. Pengujian Endpoint API (Termasuk PUT)
 
 Base URL Server: **`http://localhost:50000`**
 

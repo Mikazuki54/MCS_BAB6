@@ -14,8 +14,8 @@ const (
 	host     = "localhost"
 	port     = 5432
 	user     = "postgres"
-	password = "nickytirta54"
-	dbName   = "mcs_bab_6"
+	password = "" // SESUAIKAN DENGAN PASSWORD POSTGRE YANG TELAH DIDAFTARKAN
+	dbName   = "" // SESUAIKAN DENGAN NAMA DATABASE YANG DIBUAT
 )
 
 var (
@@ -24,21 +24,23 @@ var (
 )
 
 func main() {
-	var PORT = ":50000"
+	var PORT = ":50000" // ISI DENGAN PORT BEBAS (DAPAT DICARI DI GOOGLE DENGAN KEYWORD "UNUSED PORT RANGE")
 
 	psqlInfo := fmt.Sprintf(
 		`host=%s port=%d user=%s password=%s dbname=%s sslmode=disable`,
 		host, port, user, password, dbName,
 	)
+
 	DB, err = sql.Open("postgres", psqlInfo)
+
 	if err != nil {
 		log.Fatal("Error Open DB: ", err)
 	}
 
-	database.DBMigrate(DB)
+	database.DBMigration(DB)
 
 	defer DB.Close()
 
 	routers.StartServer().Run(PORT)
-	fmt.Printf("Connect Successfully")
+	fmt.Printf("Success Connected")
 }

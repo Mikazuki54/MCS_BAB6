@@ -9,22 +9,19 @@ import (
 )
 
 //go:embed sql_migrations/*.sql
-var dbMigrations embed.FS
+var dbMigration embed.FS
 var DbConnection *sql.DB
 
-func DBMigrate(dbParam *sql.DB) {
+func DBMigration(dbParam *sql.DB) {
 	migrations := &migrate.EmbedFileSystemMigrationSource{
-		FileSystem: dbMigrations,
+		FileSystem: dbMigration,
 		Root:       "sql_migrations",
 	}
-
 	n, errs := migrate.Exec(dbParam, "postgres", migrations, migrate.Up)
 
 	if errs != nil {
 		panic(errs)
 	}
-
 	DbConnection = dbParam
-
-	fmt.Println("Migrations Succes Applied", n, migrations)
+	fmt.Println("Migrasi berhasil dilakukan", n, migrations)
 }

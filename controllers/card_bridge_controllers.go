@@ -11,6 +11,7 @@ import (
 
 func GetCards(c *gin.Context) {
 	var result gin.H
+
 	card, err := repositories.GetCards(database.DbConnection)
 
 	if err != nil {
@@ -22,7 +23,6 @@ func GetCards(c *gin.Context) {
 			"result": card,
 		}
 	}
-
 	c.JSON(http.StatusOK, result)
 }
 
@@ -34,9 +34,9 @@ func InsertCard(c *gin.Context) {
 	err := repositories.InsertCard(database.DbConnection, card)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"errpr": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-
 	c.JSON(http.StatusOK, card)
 }
 
@@ -49,8 +49,7 @@ func DeleteCard(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Data is been delete", "id": idCard})
-
+	c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Dihapus", "id": idCard})
 }

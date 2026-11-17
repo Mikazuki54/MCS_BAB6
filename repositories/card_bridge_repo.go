@@ -12,7 +12,6 @@ func GetCards(db *sql.DB) (result []entities.Card, err error) {
 	if err != nil {
 		return
 	}
-
 	defer rows.Close()
 
 	for rows.Next() {

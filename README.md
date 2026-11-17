@@ -190,16 +190,11 @@ type Card struct {
 }
 ```
 
-#### Penjelasan Sintaks, Variabel, & Kata Kunci:
-1. **`package entities`**: Menandai bahwa kode ini milik kelompok (*package*) `entities`. File lain bisa memakai struktur ini dengan meng-import `"bab6/entities"`.
-2. **`type Card struct`**:
-   * **`type`**: Kata kunci Go untuk membuat tipe data baru.
-   * **`Card`**: Nama dari tipe data yang kita buat. Menggunakan huruf awal **kapital (`C`)** artinya tipe ini bersifat **Public/Exported** (bisa dibaca oleh package lain luar `entities`).
-   * **`struct`**: Koleksi kumpulan variabel (field) yang dibungkus menjadi satu kesatuan objek.
-3. **`ID string`**:
-   * **`ID`**: Nama properti/variabel di dalam `Card`. Diawali huruf kapital agar bisa dibaca oleh library JSON serializer dan package lain.
-   * **`string`**: Tipe data teks (huruf/angka sebagai karakter). Sesuai dengan tipe kolom `varchar(20)` di database PostgreSQL.
-4. **`` `json: "id"` ``**: Disebut **Struct Tag**. Ini petunjuk untuk converter JSON bawaan Go. Saat data `Card` diubah menjadi JSON, nama variabel `ID` akan ditulis sebagai `"id"` (huruf kecil).
+#### Penjelasan Detail Baris demi Baris (Gaya Pemula):
+* ◦ `package entities` : Menandakan bahwa file ini tergabung dalam satu kelompok folder bernama `entities`. Layaknya sebuah laci khusus di lemari, ini membuat kode data terorganisir dengan rapi.
+* ◦ `type Card struct` : Perintah untuk membuat cetakan data baru bernama `Card`. Huruf `C` besar di awal kata sangat penting dalam bahasa Go agar cetakan data ini bisa dibaca dan digunakan oleh file lain di luar folder ini.
+* ◦ `ID string` : Kotak penyimpanan data di dalam cetakan `Card` bernama `ID` dengan jenis data teks (`string`).
+* ◦ `json: "id"` : Petunjuk khusus untuk menterjemahkan variabel `ID` menjadi tulisan `"id"` berhuruf kecil ketika dikirim dalam bentuk format JSON kepada pengguna.
 
 ---
 
@@ -218,11 +213,11 @@ CREATE TABLE card (
 -- +migrate StatementEnd
 ```
 
-#### Penjelasan Sintaks & Instruksi SQL:
-1. **`-- +migrate Up`**: Komentar khusus direktif untuk library `sql-migrate`. Menandakan instruksi SQL di bawahnya dijalankan ketika proses migrasi aplikasi bergerak maju (*Up*).
-2. **`-- +migrate StatementBegin` & `-- +migrate StatementEnd`**: Penanda batas awal dan akhir satu blok transaksi perintah SQL.
-3. **`CREATE TABLE card (`**: Perintah SQL untuk membuat tabel baru bernama `card`.
-4. **`id varchar(20)`**: Membuat kolom bernama `id` bertipe teks dinamis (`varchar`) dengan panjang maksimum 20 karakter.
+#### Penjelasan Detail Baris demi Baris (Gaya Pemula):
+* ◦ `-- +migrate Up` : Perintah rahasia (direktif) yang dibaca oleh alat migrasi database untuk memberitahu bahwa kode di bawah ini bertugas *membangun atau menambah* isi database.
+* ◦ `-- +migrate StatementBegin` & `-- +migrate StatementEnd` : Batas awal dan akhir satu paket perintah SQL agar dijalankan secara utuh dan aman oleh sistem.
+* ◦ `CREATE TABLE card (` : Perintah SQL dasar untuk membuat tabel baru di dalam database dengan nama `card`.
+* ◦ `id varchar(20)` : Membuat sebuah kolom di dalam tabel bernama `id` dengan jenis teks dinamis (`varchar`) dengan batas maksimal 20 huruf/angka.
 
 ---
 
@@ -260,25 +255,20 @@ func DBMigration(dbParam *sql.DB) {
 }
 ```
 
-#### Penjelasan Sintaks, Variabel, & Fungsi:
-1. **`package database`**: Nama package pengelola database.
-2. **`import (...)`**: Memuat library pendukung:
-   * `"database/sql"`: Library standar Go untuk mengolah database SQL.
-   * `"embed"`: Fitur canggih Go untuk memasukkan file fisik (seperti `.sql`) langsung ke dalam program executable binary.
-   * `"fmt"`: Library untuk mencetak teks ke layar terminal.
-   * `migrate "github.com/rubenv/sql-migrate"`: Library migrasi database otomatis yang di-alias menjadi nama `migrate`.
-3. **`//go:embed sql_migrations/*.sql`**: **Compiler Directive** (perintah khusus compiler Go). Menginstruksikan Go membaca semua file `.sql` di folder `sql_migrations/` dan memasukkannya ke variabel di bawahnya.
-4. **`var dbMigration embed.FS`**: Variabel bertipe `embed.FS` (*Embedded File System*) yang menampung isi file `.sql` di dalam memori program.
-5. **`var DbConnection *sql.DB`**: Variabel global bertipe pointer database (`*sql.DB`). Menggunakan huruf awal kapital (`D`) agar variabel koneksi ini bisa dipanggil dari package lain (`database.DbConnection`).
-6. **`func DBMigration(dbParam *sql.DB)`**: Fungsi migrasi database.
-   * **Parameter `dbParam *sql.DB`**: Menerima objek koneksi PostgreSQL yang dikirim dari `main.go`.
-   * **`migrations := &migrate.EmbedFileSystemMigrationSource{...}`**: Menyiapkan sumber file migrasi dari variabel `dbMigration` dalam folder `"sql_migrations"`.
-   * **`n, errs := migrate.Exec(dbParam, "postgres", migrations, migrate.Up)`**: Eksekusi migrasi ke PostgreSQL.
-     * `n`: Jumlah file migrasi SQL yang baru diterapkan.
-     * `errs`: Menampung objek error jika migrasi gagal.
-   * **`if errs != nil { panic(errs) }`**: Jika terjadi error (misal database belum ada atau SQL salah), `panic()` di-trigger untuk menghentikan program seketika dan menampilkan pesan kesalahannya.
-   * **`DbConnection = dbParam`**: Menyimpan koneksi database yang valid ke variabel publik `DbConnection`.
-   * **`fmt.Println(...)`**: Mencetak pesan konfirmasi ke terminal bahwa migrasi sukses.
+#### Penjelasan Detail Baris demi Baris (Gaya Pemula):
+* ◦ `package database` : Menandakan file ini adalah bagian dari kelompok pengelola database.
+* ◦ `import (...)` : Memanggil alat-alat bantu dari luar (pustaka standar Go maupun pustaka tambahan) agar bisa digunakan di file ini.
+* ◦ `//go:embed sql_migrations/*.sql` : Perintah ajaib di Go untuk membungkus dan menyembunyikan file-file `.sql` langsung ke dalam hasil akhir program, jadi kita tidak perlu membawa folder file `.sql` terpisah saat aplikasi dijalankan di komputer lain.
+* ◦ `var dbMigration embed.FS` : Variabel penampung file `.sql` yang sudah dibungkus tadi ke dalam memori sistem file virtual.
+* ◦ `var DbConnection *sql.DB` : Variabel global yang memegang kunci koneksi database agar bisa dipanggil kapan saja oleh file lain (`controllers` atau `repositories`).
+* ◦ `func DBMigration(dbParam *sql.DB)` : Fungsi utama untuk menjalankan migrasi database. Menerima kiriman kunci koneksi database (`dbParam`) dari file `main.go`.
+* ◦ `migrations := &migrate.EmbedFileSystemMigrationSource{...}` : Mengatur sumber folder file migrasi agar membaca dari variabel `dbMigration` di dalam folder `sql_migrations`.
+* ◦ `n, errs := migrate.Exec(dbParam, "postgres", migrations, migrate.Up)` : Perintah utama untuk mengeksekusi migrasi ke database. `n` (angka integer) berisi jumlah file migrasi yang sukses dijalankan, dan `errs` (tipe error) akan berisi pesan kesalahan jika proses migrasi gagal.
+* ◦ `"postgres"` : Memberitahu library migrasi bahwa jenis database yang kita tuju adalah PostgreSQL.
+* ◦ `migrate.Up` : Arah migrasi maju (membangun/membuat tabel). Kebalikannya adalah `migrate.Down` untuk menghapus kembali tabel.
+* ◦ `if errs != nil { panic(errs) }` : Pengaman jika migrasi gagal (misal koneksi salah), program akan langsung dihentikan secara paksa (`panic`) agar kita tahu letak kesalahannya.
+* ◦ `DbConnection = dbParam` : Menyimpan koneksi database yang sudah berhasil diuji ke variabel global `DbConnection`.
+* ◦ `fmt.Println(...)` : Mencetak tulisan sukses migrasi ke layar terminal.
 
 ---
 
@@ -304,9 +294,14 @@ func UpdateCard(db *sql.DB, card entities.Card) (err error) {
 }
 ```
 
-#### Penjelasan Syntax untuk UPDATE (PUT):
-* **`sql := "UPDATE card SET id = $1 WHERE id = $2"`**: Perintah SQL untuk memperbarui data. `SET` menentukan kolom yang diubah, `WHERE` menentukan data mana yang diubah.
-* **`db.Exec(...)`**: Menjalankan perintah SQL tersebut ke database.
+#### Penjelasan Detail Baris demi Baris (Gaya Pemula):
+* ◦ `package repositories` : Menandakan file ini berada di kelompok khusus repositori data (tempat koki meracik perintah SQL).
+* ◦ `import (...)` : Memuat cetakan data `entities` dan pustaka SQL Go.
+* ◦ `func GetCards(db *sql.DB) (result []entities.Card, err error)` : Fungsi untuk mengambil semua data kartu. Mengembalikan kumpulan data kartu (`result`) dan status error (`err`).
+* ◦ `db.Query(sql)` : Perintah untuk menjalankan query pencarian/pembacaan data `SELECT` ke database.
+* ◦ `defer rows.Close()` : Perintah pengaman agar setelah selesai membaca data, lembaran hasil bacaan langsung ditutup kembali agar RAM komputer tidak bocor.
+* ◦ `rows.Next()` & `rows.Scan(&data.ID)` : Perulangan membaca baris data satu per satu dari database dan menyalinnya ke dalam variabel `data.ID`.
+* ◦ `db.Exec(sql, card.ID)` : Perintah eksekusi untuk `INSERT`, `UPDATE`, atau `DELETE` data ke database. Menggunakan parameter `$1` agar aman dari serangan peretas (*SQL Injection*).
 
 ---
 
@@ -337,6 +332,13 @@ func UpdateCard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Diupdate"})
 }
 ```
+
+#### Penjelasan Detail Baris demi Baris (Gaya Pemula):
+* ◦ `package controllers` : Menandakan file ini bertugas sebagai pelayan utama penghubung antara pengguna dan sistem dapur.
+* ◦ `c *gin.Context` : Objek penghubung bawaan framework Gin yang membawa seluruh data permintaan (request) dari pengguna sekaligus alat untuk mengirim jawaban (response).
+* ◦ `c.Param("id")` : Perintah untuk mengambil potongan teks penting dari alamat URL (misal mengambil ID kartu dari `/card/delete/CARD-01`).
+* ◦ `c.ShouldBindJSON(&card)` : Perintah untuk membaca data berformat JSON yang dikirim oleh pengguna melalui Body request (biasanya dipakai pada metode `POST` atau `PUT`).
+* ◦ `c.JSON(http.StatusOK, ...)` : Perintah untuk mengirim balasan kembali kepada pengguna berupa data berformat JSON dengan status sukses (`200 OK`).
 
 ---
 
@@ -371,9 +373,20 @@ func StartServer() *gin.Engine {
 	router.PUT("/card/update/:id", controllers.UpdateCard)
 	router.DELETE("/card/delete/:id", controllers.DeleteCard)
 
+	router.GET("/cards", controllers.GetCards)
+	router.POST("/card/input/:id", controllers.InsertCard)
+	router.PUT("/card/update/:id", controllers.UpdateCard)
+	router.DELETE("/card/delete/:id", controllers.DeleteCard)
+
 	return router
 }
 ```
+
+#### Penjelasan Detail Baris demi Baris (Gaya Pemula):
+* ◦ `package routers` : Kelompok file yang bertugas sebagai buku daftar alamat rute jalan di aplikasi.
+* ◦ `router := gin.Default()` : Perintah untuk menyalakan mesin pengatur alamat web berbasis Gin (lengkap dengan fitur pemantau log terminal dan pengaman agar server tidak gampang mati).
+* ◦ `router.Use(cors.New(...))` : Pengaturan izin lintas domain (CORS) agar aplikasi frontend (seperti React/Vue atau Postman) bisa mengakses API ini tanpa diblokir oleh browser.
+* ◦ `router.GET(...)`, `router.POST(...)`, `router.PUT(...)`, `router.DELETE(...)` : Peta jalur utama penghubung alamat URL ke fungsi pelayan (controller) yang tepat.
 
 ---
 
@@ -430,22 +443,14 @@ func main() {
 }
 ```
 
-#### Penjelasan Sintaks, Variabel, & Fungsi:
-1. **`package main` & `func main()`**: Syarat mutlak program Go yang dapat dieksekusi (*executable*). Titik awal eksekusi program dimulai dari sini.
-2. **`_ "github.com/lib/pq"`**: Disebut **Side-Effect Import** (diawali tanda garis bawah `_`). Kita tidak memanggil fungsi package `pq` secara langsung, tetapi kita membutuhkan fungsi internal `init()` milik package `pq` agar driver database bernama `"postgres"` terdaftar secara resmi di package standar `database/sql`.
-3. **Blok `const (...)`**: Mendefinisikan nilai variabel tetap (konstanta) untuk konfigurasi PostgreSQL:
-   * `host = "localhost"`: Alamat komputer tempat PostgreSQL berada.
-   * `port = 5432`: Nomor port standar PostgreSQL.
-   * `user = "postgres"`: Username login PostgreSQL.
-   * `password = "nickytirta54"`: Password user PostgreSQL.
-   * `dbName = "mcsbab6"`: Nama database yang digunakan di PostgreSQL.
-4. **Blok `var ( DB *sql.DB; err error )`**: Variabel global penampung koneksi SQL (`DB`) dan objek error (`err`).
-5. **`var PORT = ":50000"`**: Variabel penyimpan nomor port server web HTTP tempat aplikasi akan berjalan (akses: `http://localhost:50000`).
-6. **`psqlInfo := fmt.Sprintf(...)`**: Rangkaian teks *Connection String* (DSN) format PostgreSQL.
-7. **`DB, err = sql.Open("postgres", psqlInfo)`**: Inisialisasi awal koneksi database PostgreSQL.
-8. **`database.DBMigration(DB)`**: Memanggil fungsi migrasi dari package `database`. Memastikan tabel `card` otomatis dibuat di PostgreSQL.
-9. **`defer DB.Close()`**: Menjamin koneksi database ditutup dengan aman saat program berhenti.
-10. **`routers.StartServer().Run(PORT)`**: Memanggil fungsi `StartServer()` dari `routers` dan menyalakan server di port `:50000`.
+#### Penjelasan Detail Baris demi Baris (Gaya Pemula):
+* ◦ `package main` : Kelompok utama wajib bagi file Go yang bisa dijalankan langsung sebagai program mandiri.
+* ◦ `_ "github.com/lib/pq"` : Panggilan khusus (side-effect import) dengan tanda garis bawah `_` di depannya. Berfungsi mendaftarkan sopir/driver PostgreSQL ke dalam sistem Go agar komputer tahu cara mengobrol dengan database PostgreSQL.
+* ◦ `const (...)` : Kotak penyimpanan data tetap (konstanta) yang berisi alamat host, port, username, password, dan nama database PostgreSQL Anda.
+* ◦ `sql.Open("postgres", psqlInfo)` : Perintah untuk mulai membuka pintu komunikasi/koneksi pertama kali ke server PostgreSQL menggunakan data koneksi (`psqlInfo`) yang sudah dirangkai.
+* ◦ `database.DBMigration(DB)` : Memerintahkan program untuk masuk ke folder database dan menjalankan migrasi otomatis pembuatan tabel.
+* ◦ `defer DB.Close()` : Perintah pengaman agar koneksi database ditutup secara otomatis saat program dimatikan.
+* ◦ `routers.StartServer().Run(PORT)` : Perintah pamungkas untuk menyalakan server web HTTP di port `:50000` agar siap menerima kunjungan dari pengguna.
 
 ---
 
@@ -478,7 +483,7 @@ Base URL Server: **`http://localhost:50000`**
   ```bash
   curl -X PUT http://localhost:50000/card/update/CARD-001 \
   -H "Content-Type: application/json" \
-  -d '{"id": "CARD-BARU"}'
+  -d '{"id": "CARD-BARU"}`
   ```
 * **Hasil Response (`200 OK`)**:
   ```json

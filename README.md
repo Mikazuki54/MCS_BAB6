@@ -58,9 +58,9 @@ Sebelum masuk ke kode, mari kita pahami apa yang dibuat oleh aplikasi ini dengan
 
 ---
 
-## 🛠️ 3. Langkah-Langkah Membuat Proyek Go Baru Menggunakan Framework Gin
+## 🛠️ 3. Langkah-Langkah Membuat Proyek Go Baru Menggunakan Framework Gin & Library Pendukung
 
-Bagi pemula yang ingin membuat proyek Go baru dari nol menggunakan framework Gin, ikuti tahapan di bawah ini:
+Bagi pemula yang ingin membuat proyek Go baru dari nol, ikuti tahapan lengkap di bawah ini:
 
 ### Langkah 1: Install Golang
 Pastikan Go sudah terinstal di komputer Anda. Cek melalui terminal:
@@ -82,11 +82,32 @@ go mod init proyek-baru
 ```
 *(Ganti `proyek-baru` dengan nama modul/proyek Anda).*
 
-### Langkah 4: Install Framework Gin Gonic
-Unduh dan pasang framework Gin ke dalam proyek Anda:
-```bash
-go get -u github.com/gin-gonic/gin
-```
+### Langkah 4: Install Pustaka / Dependensi Eksternal
+Untuk membangun REST API yang terhubung ke database dan migrasi otomatis, jalankan perintah `go get` berikut beserta penjelasan fungsinya:
+
+1. **Install Framework Gin Gonic (Web Server Framework)**
+   ```bash
+   go get -u "github.com/gin-gonic/gin"
+   ```
+   * **Fungsi:** Framework HTTP berkinerja tinggi untuk menangani routing URL, parameter, middleware CORS, dan pengiriman response berformat JSON dengan cepat dan mudah.
+
+2. **Install Driver PostgreSQL (`lib/pq`)**
+   ```bash
+   go get -u "github.com/lib/pq"
+   ```
+   * **Fungsi:** Driver penghubung murni antara bahasa Go dengan database PostgreSQL sehingga fungsi standar `database/sql` bisa berkomunikasi langsung dengan server PostgreSQL.
+
+3. **Install Library Migrasi SQL (`sql-migrate`)**
+   ```bash
+   go get -u "github.com/rubenv/sql-migrate"
+   ```
+   * **Fungsi:** Library untuk menjalankan migrasi skema tabel database secara terstruktur menggunakan file `.sql` (seperti `1_initiate.sql`).
+
+4. **Install Library Pembaca File Konfigurasi `.env` (`godotenv`)**
+   ```bash
+   go get -u "github.com/joho/godotenv"
+   ```
+   * **Fungsi:** Library untuk memuat variabel rahasia atau konfigurasi (seperti password database, port, host) dari file `.env` eksternal agar kode lebih aman dan mudah dikonfigurasi.
 
 ### Langkah 5: Buat File `main.go`
 Buat file bernama `main.go` di dalam folder proyek Anda, lalu isi dengan kode sederhana web server Gin berikut:

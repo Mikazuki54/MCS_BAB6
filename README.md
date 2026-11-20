@@ -6,13 +6,13 @@ Dokumentasi ini dirancang sebagai panduan pembelajaran komprehensif untuk memaha
 
 ## 💡 1. Penjelasan Proyek (Overview)
 
-Aplikasi **Card Bridge (bab6)** adalah sebuah sistem backend sederhana namun kokoh yang berfungsi untuk mengelola identitas kartu. Proyek ini menggunakan **Arsitektur Berlapis (Layered Architecture)**, sebuah standar industri yang memisahkan kode berdasarkan tanggung jawabnya agar aplikasi mudah dikelola, diuji, dan dikembangkan di masa depan.
+**Aplikasi Card Bridge (bab6)** adalah sebuah sistem backend sederhana namun kokoh yang berfungsi untuk mengelola identitas kartu. Proyek ini menggunakan **Arsitektur Berlapis (Layered Architecture)**, sebuah standar industri yang memisahkan kode berdasarkan tanggung jawabnya agar aplikasi mudah dikelola, diuji, dan dikembangkan di masa depan.
 
-**Tujuan Proyek:**
-*   Menyediakan endpoint API untuk melihat daftar kartu (`GET`).
-*   Menyediakan endpoint API untuk menambah kartu baru (`POST`).
-*   Menyediakan endpoint API untuk menghapus data kartu (`DELETE`).
-*   Mengotomatiskan pembuatan tabel database menggunakan sistem migrasi.
+### Tujuan Proyek:
+- Menyediakan endpoint API untuk melihat daftar kartu (`GET`).
+- Menyediakan endpoint API untuk menambah kartu baru (`POST`).
+- Menyediakan endpoint API untuk menghapus data kartu (`DELETE`).
+- Mengotomatisasi pembuatan tabel database menggunakan sistem migrasi.
 
 ---
 
@@ -20,12 +20,12 @@ Aplikasi **Card Bridge (bab6)** adalah sebuah sistem backend sederhana namun kok
 
 Agar lebih mudah membayangkan alur data, mari gunakan analogi sebuah restoran:
 
-*   **PELANGGAN (Client/Postman)**: Pihak yang lapar akan data. Mereka mengirimkan pesanan melalui HTTP Request (GET, POST, dll).
-*   **KASIR (Router)**: Orang pertama yang menerima pesanan di depan. Kasir mengecek menu (URL) dan mengarahkan pesanan ke pelayan yang tepat.
-*   **PELAYAN (Controller)**: Menemui pelanggan, mencatat detail pesanan, memastikan formatnya benar, dan berkomunikasi dengan bagian dapur. Setelah makanan siap, pelayan menyajikannya dalam piring JSON.
-*   **KOKI (Repository)**: Sang ahli dapur. Koki tidak tahu siapa pelanggan di depan; dia hanya fokus mengolah bahan mentah menjadi masakan berdasarkan perintah (Query SQL).
-*   **GUDANG BAHAN (Database)**: Tempat penyimpanan permanen seluruh bahan baku (Data di PostgreSQL).
-*   **CETAKAN PIRING (Entity)**: Standar bentuk makanan yang akan disajikan. Ini memastikan semua data kartu yang keluar dari sistem memiliki bentuk yang konsisten.
+- **PELANGGAN (Client/Postman)**: Pihak yang lapar akan data. Mereka mengirimkan pesanan melalui HTTP Request (GET, POST, dll).
+- **KASIR (Router)**: Orang pertama yang menerima pesanan di depan. Kasir mengecek menu (URL) dan mengarahkan pesanan ke pelayan yang tepat.
+- **PELAYAN (Controller)**: Menemui pelanggan, mencatat detail pesanan, memastikan formatnya benar, dan berkomunikasi dengan bagian dapur. Setelah makanan siap, pelayan menyajikannya dalam piring JSON.
+- **KOKI (Repository)**: Sang ahli dapur. Koki tidak tahu siapa pelanggan di depan; dia hanya fokus mengolah bahan mentah menjadi masakan berdasarkan perintah (Query SQL).
+- **GUDANG BAHAN (Database)**: Tempat penyimpanan permanen seluruh bahan baku (Data di PostgreSQL).
+- **CETAKAN PIRING (Entity)**: Standar bentuk makanan yang akan disajikan. Ini memastikan semua data kartu yang keluar dari sistem memiliki bentuk yang konsisten.
 
 ---
 
@@ -83,6 +83,7 @@ Berikut adalah bedah total setiap file kodenya secara berurutan:
 ---
 
 ### 5.1. `entities/card_bridge_entity.go` (Cetak Biru Data)
+
 **Tugas**: Mendefinisikan struktur data kartu yang akan diolah di seluruh aplikasi.
 
 #### KODE:
@@ -95,14 +96,15 @@ type Card struct {
 ```
 
 #### PENJELASAN MENDETAIL:
-*   **`package entities`**: Baris ini memberi tahu Go bahwa file ini adalah bagian dari folder `entities`.
-*   **`type Card struct`**: Kita menciptakan tipe data baru bernama `Card`. Nama ini menggunakan huruf **Kapital (C)** agar bisa di-import oleh folder lain (Public).
-*   **`ID string`**: Di dalam kartu, terdapat data `ID` yang bertipe teks (`string`).
-*   **`` `json: "id"` ``**: Ini disebut **Struct Tag**. Fungsinya: Saat data dikirim ke pelanggan dalam format JSON, nama field yang tadinya `ID` (Besar) akan otomatis berubah menjadi `id` (kecil) sesuai standar web.
+- **`package entities`**: Baris ini memberi tahu Go bahwa file ini adalah bagian dari folder `entities`.
+- **`type Card struct`**: Kita menciptakan tipe data baru bernama `Card`. Nama ini menggunakan huruf **Kapital (C)** agar bisa di-import oleh folder lain (Public).
+- **`ID string`**: Di dalam kartu, terdapat data `ID` yang bertipe teks (`string`).
+- **`` `json: "id"` ``**: Ini disebut **Struct Tag**. Fungsinya: Saat data dikirim ke pelanggan dalam format JSON, nama field yang tadinya `ID` (Besar) akan otomatis berubah menjadi `id` (kecil) sesuai standar web.
 
 ---
 
 ### 5.2. `databases/sql_migrations/1_initiate.sql` (Instruksi Database)
+
 **Tugas**: Skrip SQL yang akan dijalankan oleh sistem migrasi untuk membuat tabel.
 
 #### KODE:
@@ -118,14 +120,15 @@ CREATE TABLE card (
 ```
 
 #### PENJELASAN MENDETAIL:
-*   **`-- +migrate Up`**: Penanda bahwa skrip ini harus dijalankan saat sistem melakukan *update* ke atas (membuat tabel).
-*   **`-- +migrate StatementBegin/End`**: Membungkus perintah SQL agar dijalankan sebagai satu kesatuan perintah yang utuh.
-*   **`CREATE TABLE card`**: Perintah standar SQL untuk membuat tabel baru bernama `card`.
-*   **`id varchar(20)`**: Membuat satu kolom bernama `id` dengan tipe teks dinamis maksimal 20 karakter.
+- **`-- +migrate Up`**: Penanda bahwa skrip ini harus dijalankan saat sistem melakukan *update* ke atas (membuat tabel).
+- **`-- +migrate StatementBegin/End`**: Membungkus perintah SQL agar dijalankan sebagai satu kesatuan perintah yang utuh.
+- **`CREATE TABLE card`**: Perintah standar SQL untuk membuat tabel baru bernama `card`.
+- **`id varchar(20)`**: Membuat satu kolom bernama `id` dengan tipe teks dinamis maksimal 20 karakter.
 
 ---
 
 ### 5.3. `databases/database.go` (Pusat Koneksi)
+
 **Tugas**: Menangani proses pembukaan gerbang database dan menjalankan migrasi otomatis saat aplikasi pertama kali menyala.
 
 #### KODE:
@@ -159,19 +162,20 @@ func DBMigration(dbParam *sql.DB) {
 ```
 
 #### PENJELASAN MENDETAIL:
-*   **`//go:embed sql_migrations/*.sql`**: Mengambil semua file SQL di folder migrasi dan memasukkannya ke dalam variabel `dbMigration` bertipe `embed.FS`.
-*   **`var DbConnection *sql.DB`**: Variabel global untuk menampung koneksi database. Kita beri nama `DbConnection` dengan huruf **D** besar agar bisa dipanggil dari folder Controller dan Repository.
-*   **`func DBMigration(dbParam *sql.DB)`**: Fungsi ini menerima bahan baku berupa koneksi database (`dbParam`).
-    *   **`migrations := ...`**: Menyiapkan sumber file SQL dari folder `sql_migrations`.
-    *   **`migrate.Exec(...)`**: Perintah untuk mengeksekusi file SQL ke database PostgreSQL.
-    *   **`n`**: Berisi angka jumlah file yang sukses dijalankan.
-    *   **`errs`**: Menampung pesan error jika proses gagal.
-    *   **`panic(errs)`**: Jika terjadi error (misal database salah password), hentikan program seketika dengan pesan error agar developer tahu ada masalah besar.
+- **`//go:embed sql_migrations/*.sql`**: Mengambil semua file SQL di folder migrasi dan memasukkannya ke dalam variabel `dbMigration` bertipe `embed.FS`.
+- **`var DbConnection *sql.DB`**: Variabel global untuk menampung koneksi database. Kita beri nama `DbConnection` dengan huruf **D** besar agar bisa dipanggil dari folder Controller dan Repository.
+- **`func DBMigration(dbParam *sql.DB)`**: Fungsi ini menerima bahan baku berupa koneksi database (`dbParam`).
+  - **`migrations := ...`**: Menyiapkan sumber file SQL dari folder `sql_migrations`.
+  - **`migrate.Exec(...)`**: Perintah untuk mengeksekusi file SQL ke database PostgreSQL.
+  - **`n`**: Berisi angka jumlah file yang sukses dijalankan.
+  - **`errs`**: Menampung pesan error jika proses gagal.
+  - **`panic(errs)`**: Jika terjadi error (misal database salah password), hentikan program seketika dengan pesan error agar developer tahu ada masalah besar.
 
 ---
 
 ### 5.4. `repositories/card_bridge_repo.go` (Dapur Rekaman)
-**Tugas**: Tempat Koki bekerja. Semua perintah SQL (`SELECT`, `INSERT`) ditulis di sini.
+
+**Tugas**: Tempat Koki bekerja. Semua perintah SQL (`SELECT`, `INSERT`, `DELETE`) ditulis di sini.
 
 #### KODE:
 ```go
@@ -206,26 +210,35 @@ func InsertCard(db *sql.DB, card entities.Card) (err error) {
 	_, err = db.Exec(sql, card.ID)
 	return err
 }
+
+func DeleteCard(db *sql.DB, card entities.Card) (err error) {
+	sql := "DELETE FROM card WHERE id = $1"
+	_, err = db.Exec(sql, card.ID)
+	return err
+}
 ```
 
 #### PENJELASAN MENDETAIL FUNGSI:
+
 1.  **Fungsi `GetCards`**: Mengambil semua data kartu.
-    *   **`db.Query(sql)`**: Menjalankan perintah cari. Hasilnya disimpan di variabel `rows`.
-    *   **`defer rows.Close()`**: Memastikan data yang sedang dibaca ditutup setelah selesai, agar koneksi tidak "nyangkut".
-    *   **`for rows.Next()`**: Melakukan perulangan untuk setiap baris data yang ditemukan di database.
-    *   **`rows.Scan(&data.ID)`**: Memindahkan data dari database ke variabel `data.ID`. Simbol **`&`** digunakan agar database tahu lokasi memori pasti di mana dia harus meletakkan datanya.
-    *   **`append(result, data)`**: Menambahkan satu kartu ke dalam daftar panjang `result`.
+    - **`db.Query(sql)`**: Menjalankan perintah cari. Hasilnya disimpan di variabel `rows`.
+    - **`defer rows.Close()`**: Memastikan data yang sedang dibaca ditutup setelah selesai, agar koneksi tidak "nyangkut".
+    - **`for rows.Next()`**: Melakukan perulangan untuk setiap baris data yang ditemukan di database.
+    - **`rows.Scan(&data.ID)`**: Memindahkan data dari database ke variabel `data.ID`. Simbol **`&`** digunakan agar database tahu lokasi memori pasti di mana dia harus meletakkan datanya.
+    - **`append(result, data)`**: Menambahkan satu kartu ke dalam daftar panjang `result`.
+
 2.  **Fungsi `InsertCard`**: Menambah kartu baru.
-    *   **`db.Exec(sql, card.ID)`**: Menjalankan perintah tambah.
-    *   **`_` (Blank Identifier)**: Karena `db.Exec` memberikan info statistik (berapa baris yang berubah) yang tidak kita butuhkan, kita gunakan `_` untuk membuangnya.
-  3.  **Fungsi `DeleteCard`**: Menghapus kartu berdasarkan ID.
-      *   **`c.Param("id")`**: Mengambil nilai ID dari URL (misal: `/card/delete/ABC-123`).
-      *   **`repositories.DeleteCard(...)`**: Memanggil repository untuk menjalankan perintah `DELETE FROM card WHERE id = $1`.
-      *   **`c.JSON(http.StatusOK, ...)`**: Mengirim respons sukses ke user dengan pesan "Data Berhasil Dihapus" dan ID yang dihapus.
+    - **`db.Exec(sql, card.ID)`**: Menjalankan perintah tambah.
+    - **`_` (Blank Identifier)**: Karena `db.Exec` memberikan info statistik (berapa baris yang berubah) yang tidak kita butuhkan, kita gunakan `_` untuk membuangnya.
+
+3.  **Fungsi `DeleteCard`**: Menghapus kartu berdasarkan ID.
+    - **`db.Exec(sql, card.ID)`**: Menjalankan perintah hapus dengan kondisi `WHERE id = $1`.
+    - **`_` (Blank Identifier)**: Karena `db.Exec` memberikan info statistik yang tidak kita butuhkan, kita gunakan `_` untuk membuangnya.
 
 ---
 
 ### 5.5. `controllers/card_bridge_controllers.go` (Pelayan Restoran)
+
 **Tugas**: Menerima request dari user, memanggil Repository, dan memberikan jawaban (Response).
 
 #### KODE:
@@ -237,6 +250,7 @@ import (
 	"bab6/entities"
 	"bab6/repositories"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -264,18 +278,45 @@ func InsertCard(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, card)
 }
+
+func DeleteCard(c *gin.Context) {
+	var card entities.Card
+	idCard := c.Param("id")
+	card.ID = idCard
+
+	err := repositories.DeleteCard(database.DbConnection, card)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Dihapus", "id": idCard})
+}
 ```
 
 #### PENJELASAN MENDETAIL:
-*   **`c *gin.Context`**: Parameter wajib di Gin. Menampung data masuk dan alat kirim data keluar.
-*   **`idCard := c.Param("id")`**: Mengambil teks ID yang diketik user di alamat URL (misal: `/card/input/ABC-123`, maka ID-nya adalah `ABC-123`).
-*   **`c.JSON(...)`**: Mengirimkan jawaban balik ke user.
-    *   `http.StatusOK`: Kode angka `200` (Berhasil).
-    *   `http.StatusInternalServerError`: Kode angka `500` (Ada masalah di server/database).
+
+**Fungsi `GetCards`**:
+- **`c *gin.Context`**: Parameter wajib di Gin. Menampung data masuk dan alat kirim data keluar.
+- **`repositories.GetCards(database.DbConnection)`**: Memanggil repository untuk mengambil data kartu dari database.
+- **`c.JSON(http.StatusOK, result)`**: Mengirimkan jawaban balik ke user dengan kode `200` (Berhasil).
+
+**Fungsi `InsertCard`**:
+- **`idCard := c.Param("id")`**: Mengambil teks ID yang diketik user di alamat URL (misal: `/card/input/ABC-123`, maka ID-nya adalah `ABC-123`).
+- **`card.ID = idCard`**: Menetapkan nilai ID ke struct card sebelum disimpan.
+- **`repositories.InsertCard(...)`**: Memanggil repository untuk menjalankan perintah `INSERT INTO card(id) values($1)`.
+- **`c.JSON(http.StatusInternalServerError, ...)`**: Jika gagal, kirim respons error dengan kode `500`.
+
+**Fungsi `DeleteCard`** *(Penjelasan lengkap)*:
+- **`c.Param("id")`**: Mengambil nilai ID dari URL (misal: `/card/delete/ABC-123`).
+- **`card.ID = idCard`**: Menetapkan nilai ID ke struct card sesuai yang diminta user.
+- **`repositories.DeleteCard(...)`**: Memanggil repository untuk menjalankan perintah `DELETE FROM card WHERE id = $1`.
+- **`c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Dihapus", "id": idCard})`**: Jika berhasil, kirim respons sukses dengan pesan "Data Berhasil Dihapus" dan ID yang dihapus.
 
 ---
 
 ### 5.6. `routers/card_bridge_routers.go` (Daftar Menu URL)
+
 **Tugas**: Mengatur rute jalan raya. Alamat URL mana akan diproses oleh fungsi mana.
 
 #### KODE:
@@ -308,13 +349,16 @@ func StartServer() *gin.Engine {
 ```
 
 #### PENJELASAN MENDETAIL:
-*   **`router.Use(cors.New(...))`**: Memasang aturan keamanan CORS agar aplikasi frontend dari website manapun (`"*"`) bisa mengambil data dari API ini.
-*   **`router.GET("/cards", ...)`**: Menentukan bahwa alamat `GET /cards` akan dilayani oleh fungsi `GetCards` di folder controller.
-*   **`:id`**: Ini adalah variabel dinamis. Artinya bagian ini bisa diisi apa saja oleh user di URL.
+- **`router.Use(cors.New(...))`**: Memasang aturan keamanan CORS agar aplikasi frontend dari website manapun (`"*"`) bisa mengambil data dari API ini.
+- **`router.GET("/cards", ...)`**: Menentukan bahwa alamat `GET /cards` akan dilayani oleh fungsi `GetCards` di folder controller.
+- **`router.POST("/card/input/:id", ...)`**: Menentukan bahwa alamat `POST /card/input/{id}` akan dilayani oleh fungsi `InsertCard`.
+- **`router.DELETE("/card/delete/:id", ...)`**: Menentukan bahwa alamat `DELETE /card/delete/{id}` akan dilayani oleh fungsi `DeleteCard`.
+- **`:id`**: Ini adalah variabel dinamis. Artinya bagian ini bisa diisi apa saja oleh user di URL.
 
 ---
 
 ### 5.7. `main.go` (Jantung Aplikasi)
+
 **Tugas**: Tempat tombol ON/OFF. Menyiapkan semua konfigurasi dan menjalankan server.
 
 #### KODE:
@@ -360,11 +404,11 @@ func main() {
 ```
 
 #### PENJELASAN MENDETAIL:
-*   **`_ "github.com/lib/pq"`**: Mengimpor driver Postgres. Tanda `_` (Side-effect import) berarti kita hanya ingin menjalankan kode inisialisasi di dalam library tersebut tanpa memanggil fungsinya secara langsung.
-*   **`psqlInfo := fmt.Sprintf(...)`**: Merangkai semua variabel (host, user, pass) menjadi satu kalimat perintah koneksi yang dimengerti PostgreSQL.
-*   **`sql.Open("postgres", ...)`**: Mengetuk pintu database untuk memulai koneksi.
-*   **`log.Fatal(...)`**: Jika terjadi error fatal di awal, hentikan program dan catat pesannya.
-*   **`routers.StartServer().Run(PORT)`**: Baris perintah paling sakti. Menyalakan mesin server web dan mulai menunggu pesanan user di port `50000`.
+- **`_ "github.com/lib/pq"`**: Mengimpor driver Postgres. Tanda `_` (Side-effect import) berarti kita hanya ingin menjalankan kode inisialisasi di dalam library tersebut tanpa memanggil fungsinya secara langsung.
+- **`psqlInfo := fmt.Sprintf(...)`**: Merangkai semua variabel (host, user, pass) menjadi satu kalimat perintah koneksi yang dimengerti PostgreSQL.
+- **`sql.Open("postgres", ...)`**: Mengetuk pintu database untuk memulai koneksi.
+- **`log.Fatal(...)`**: Jika terjadi error fatal di awal, hentikan program dan catat pesannya.
+- **`routers.StartServer().Run(PORT)`**: Baris perintah paling sakti. Menyalakan mesin server web dan mulai menunggu pesanan user di port `50000`.
 
 ---
 
@@ -374,9 +418,10 @@ func main() {
 2.  **Mod Tidy**: Jalankan `go mod tidy` di terminal untuk merapikan semua library.
 3.  **Jalankan**: Ketik `go run main.go`.
 4.  **Tes Semua Endpoint di Postman**:
-    *   **GET** `http://localhost:50000/cards` → Ambil daftar kartu.
-    *   **POST** `http://localhost:50000/card/input/{id}` → Tambah kartu baru (ganti `{id}` dengan nilai contoh).
-    *   **DELETE** `http://localhost:50000/card/delete/{id}` → Hapus kartu berdasarkan ID (ganti `{id}` dengan nilai yang ada).
+    - **GET** `http://localhost:50000/cards` → Ambil daftar kartu.
+    - **POST** `http://localhost:50000/card/input/{id}` → Tambah kartu baru (ganti `{id}` dengan nilai contoh).
+    - **DELETE** `http://localhost:50000/card/delete/{id}` → Hapus kartu berdasarkan ID (ganti `{id}` dengan nilai yang ada).
 
 ---
+
 *Dokumentasi ini dibuat untuk memastikan Anda memahami filosofi dan teknis dari setiap baris kode yang Anda miliki.*

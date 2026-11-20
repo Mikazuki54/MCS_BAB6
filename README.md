@@ -218,6 +218,10 @@ func InsertCard(db *sql.DB, card entities.Card) (err error) {
 2.  **Fungsi `InsertCard`**: Menambah kartu baru.
     *   **`db.Exec(sql, card.ID)`**: Menjalankan perintah tambah.
     *   **`_` (Blank Identifier)**: Karena `db.Exec` memberikan info statistik (berapa baris yang berubah) yang tidak kita butuhkan, kita gunakan `_` untuk membuangnya.
+  3.  **Fungsi `DeleteCard`**: Menghapus kartu berdasarkan ID.
+      *   **`c.Param("id")`**: Mengambil nilai ID dari URL (misal: `/card/delete/ABC-123`).
+      *   **`repositories.DeleteCard(...)`**: Memanggil repository untuk menjalankan perintah `DELETE FROM card WHERE id = $1`.
+      *   **`c.JSON(http.StatusOK, ...)`**: Mengirim respons sukses ke user dengan pesan "Data Berhasil Dihapus" dan ID yang dihapus.
 
 ---
 
@@ -369,7 +373,10 @@ func main() {
 1.  **Database**: Pastikan PostgreSQL menyala dan buat database kosong bernama `mcsbab6`.
 2.  **Mod Tidy**: Jalankan `go mod tidy` di terminal untuk merapikan semua library.
 3.  **Jalankan**: Ketik `go run main.go`.
-4.  **Tes**: Buka Postman dan akses `GET http://localhost:50000/cards`.
+4.  **Tes Semua Endpoint di Postman**:
+    *   **GET** `http://localhost:50000/cards` → Ambil daftar kartu.
+    *   **POST** `http://localhost:50000/card/input/{id}` → Tambah kartu baru (ganti `{id}` dengan nilai contoh).
+    *   **DELETE** `http://localhost:50000/card/delete/{id}` → Hapus kartu berdasarkan ID (ganti `{id}` dengan nilai yang ada).
 
 ---
 *Dokumentasi ini dibuat untuk memastikan Anda memahami filosofi dan teknis dari setiap baris kode yang Anda miliki.*
